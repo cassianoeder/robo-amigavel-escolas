@@ -162,6 +162,57 @@ const Speech = (() => {
         }
     }
 
+    let audioContext = null;
+    let analyser = null;
+    let microphone = null;
+    let javascriptNode = null;
+    let onLoudSoundCallback = null;
+
+    async function startVolumeAnalysis(onLoudSound) {
+        onLoudSoundCallback = onLoudSound;
+        if (audioContext) return; // already initialized
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            microphone = audioContext.createMediaStreamSource(stream);
+            javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+            analyser.smoothingTimeConstant = 0.3;
+            analyser.fftSize = 512;
+
+            microphone.connect(analyser);
+            analyser.connect(javascriptNode);
+            javascriptNode.connect(audioContext.destination);
+
+            let lastLoudTrigger = 0;
+
+            javascriptNode.onaudioprocess = () => {
+                const array = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(array);
+                let values = 0;
+                const length = array.length;
+                for (let i = 0; i < length; i++) {
+                    values += array[i];
+                }
+                const average = values / length;
+
+                // Threshold for "extremely loud sound"
+                // Standard claps/screams hit > 70/80 on a scale of 0-255 average
+                if (average > 75) {
+                    const now = Date.now();
+                    if (now - lastLoudTrigger > 4000) { // Throttle trigger to once every 4 seconds
+                        lastLoudTrigger = now;
+                        if (onLoudSoundCallback) onLoudSoundCallback();
+                    }
+                }
+            };
+        } catch (e) {
+            console.warn('Erro ao iniciar análise de volume do microfone:', e);
+        }
+    }
+
     // ===== Public API =====
 
     return {
@@ -179,6 +230,7 @@ const Speech = (() => {
         speak,
         cancelSpeech,
         requestMicPermission,
+        startVolumeAnalysis,
 
         // Callbacks
         onTranscript(cb) { onTranscript = cb; },

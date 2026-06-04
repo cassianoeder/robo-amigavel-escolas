@@ -112,6 +112,10 @@
                 <!-- Face background (rounded screen) -->
                 <rect id="face-bg" x="40" y="20" width="720" height="460" rx="80" ry="80" />
 
+                <!-- Eyebrows -->
+                <path id="left-eyebrow" class="eyebrow" d="M 190 80 Q 260 70 330 80" />
+                <path id="right-eyebrow" class="eyebrow" d="M 470 80 Q 540 70 610 80" />
+
                 <!-- Left Eye -->
                 <g id="left-eye" class="eye">
                     <ellipse class="eye-white" cx="270" cy="210" rx="95" ry="100" />
@@ -120,6 +124,8 @@
                     <ellipse class="eye-shine" cx="252" cy="190" rx="14" ry="18" />
                     <!-- Eyelid for blinking/sleepy -->
                     <ellipse class="eyelid" cx="270" cy="210" rx="100" ry="105" />
+                    <!-- Happy curve -->
+                    <path class="eye-happy-curve" d="M 200 230 Q 270 140 340 230" />
                 </g>
 
                 <!-- Right Eye -->
@@ -130,6 +136,8 @@
                     <ellipse class="eye-shine" cx="512" cy="190" rx="14" ry="18" />
                     <!-- Eyelid for blinking/sleepy -->
                     <ellipse class="eyelid" cx="530" cy="210" rx="100" ry="105" />
+                    <!-- Happy curve -->
+                    <path class="eye-happy-curve" d="M 460 230 Q 530 140 600 230" />
                 </g>
 
                 <!-- Mouth -->

@@ -415,6 +415,15 @@ body {
     transition: fill var(--transition-normal);
 }
 
+/* Eyebrows */
+.eyebrow {
+    fill: none;
+    stroke: var(--mouth-color);
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: transform var(--transition-normal);
+}
+
 /* Eyes */
 .eye-white {
     fill: var(--eye-white);
@@ -422,17 +431,17 @@ body {
 
 .eye-iris {
     fill: var(--eye-iris);
-    transition: cx 0.15s ease, cy 0.15s ease;
+    transition: cx 0.15s ease, cy 0.15s ease, transform var(--transition-normal);
 }
 
 .eye-pupil {
     fill: var(--eye-pupil);
-    transition: cx 0.15s ease, cy 0.15s ease;
+    transition: cx 0.15s ease, cy 0.15s ease, transform var(--transition-normal);
 }
 
 .eye-shine {
     fill: var(--eye-shine);
-    transition: cx 0.15s ease, cy 0.15s ease;
+    transition: cx 0.15s ease, cy 0.15s ease, transform var(--transition-normal);
 }
 
 /* Eyelid — for blinking and sleepy */
@@ -441,6 +450,65 @@ body {
     transform-origin: center center;
     transform: translateY(-105px);
     transition: transform 0.15s ease, fill var(--transition-normal);
+}
+
+/* Happy eye curve path */
+.eye-happy-curve {
+    fill: none;
+    stroke: var(--mouth-color);
+    stroke-width: 15;
+    stroke-linecap: round;
+    display: none; /* hidden by default */
+}
+
+/* Happy state */
+.eye.happy .eye-white,
+.eye.happy .eye-iris,
+.eye.happy .eye-pupil,
+.eye.happy .eye-shine,
+.eye.happy .eyelid {
+    display: none;
+}
+
+.eye.happy .eye-happy-curve {
+    display: block;
+}
+
+/* Confused state (asymmetric eyebrow tilt) */
+#left-eyebrow {
+    transform-origin: 260px 80px;
+}
+#right-eyebrow {
+    transform-origin: 540px 80px;
+}
+
+.robot-face.confused #left-eyebrow {
+    transform: translateY(12px) rotate(-15deg);
+}
+
+.robot-face.confused #right-eyebrow {
+    transform: translateY(-15px) rotate(15deg);
+}
+
+/* Surprised state (eyebrows up, pupils scaled down) */
+.robot-face.surprised #left-eyebrow,
+.robot-face.surprised #right-eyebrow {
+    transform: translateY(-30px);
+}
+
+.robot-face.surprised .eye-iris,
+.robot-face.surprised .eye-pupil {
+    transform: scale(0.6);
+}
+
+.robot-face.surprised #left-eye .eye-iris,
+.robot-face.surprised #left-eye .eye-pupil {
+    transform-origin: 270px 210px;
+}
+
+.robot-face.surprised #right-eye .eye-iris,
+.robot-face.surprised #right-eye .eye-pupil {
+    transform-origin: 530px 210px;
 }
 
 /* Blink animation */

@@ -133,6 +133,7 @@ const App = (() => {
             }
         } catch (e) {
             console.error('Erro ao enviar movimento:', e);
+            RobotFace.setConfused(4000);
         }
     }
 
@@ -158,10 +159,12 @@ const App = (() => {
                 await speakResponse(response);
             } else {
                 console.warn('[Robô] Webhook retornou resposta vazia');
+                RobotFace.setConfused(4000);
                 finishProcessing();
             }
         } catch (e) {
             console.error('Erro no fluxo de fala:', e);
+            RobotFace.setConfused(4000);
             finishProcessing();
         }
     }
@@ -171,6 +174,7 @@ const App = (() => {
 
         setMicInactive('Falando...');
         RobotFace.setSpeaking();
+        RobotFace.setHappy(4000); // Show happy face/eyes during the first 4s of speech
 
         await Speech.speak(text, config.vozIndex, config.velocidadeFala);
 
@@ -258,6 +262,14 @@ const App = (() => {
         RobotFace.init();
         Speech.startListening();
         if (camOk) Motion.startDetection();
+
+        // Start background microphone volume analysis for sound level reactions (shout/clap -> surprised)
+        Speech.startVolumeAnalysis(() => {
+            if (!isSleepy && !isProcessing) {
+                console.log('[Robô] Som alto detectado! Reagindo com surpresa.');
+                RobotFace.setSurprised(3000);
+            }
+        });
 
         setMicListening();
         resetInactivityTimer();

@@ -38,8 +38,13 @@ const RobotFace = (() => {
             close: 'M 310 370 Q 400 395 490 370'
         },
         sleepy:   'M 320 380 Q 400 400 480 380',
-        yawn:     'M 340 360 Q 400 440 460 360'
+        yawn:     'M 340 360 Q 400 440 460 360',
+        happy:    'M 300 360 Q 400 440 500 360',
+        confused: 'M 330 390 Q 400 360 470 400',
+        surprised: 'M 370 380 a 30 30 0 1 0 60 0 a 30 30 0 1 0 -60 0'
     };
+
+    let reactionTimeout = null;
 
     let currentState = 'idle';
     let blinkInterval = null;
@@ -136,6 +141,77 @@ const RobotFace = (() => {
         lookAt(0, 0);
     }
 
+    // Reaction helpers
+    function clearReaction() {
+        if (reactionTimeout) {
+            clearTimeout(reactionTimeout);
+            reactionTimeout = null;
+        }
+        if (face) {
+            face.classList.remove('confused', 'surprised');
+        }
+        if (leftEye && rightEye) {
+            leftEye.classList.remove('happy');
+            rightEye.classList.remove('happy');
+        }
+    }
+
+    function restoreStateAesthetics() {
+        if (currentState === 'idle') {
+            setIdle();
+        } else if (currentState === 'listening') {
+            setListening();
+        } else if (currentState === 'thinking') {
+            setThinking();
+        } else if (currentState === 'speaking') {
+            setSpeaking();
+        } else if (currentState === 'sleepy') {
+            setSleepy();
+        }
+    }
+
+    function setHappy(duration = 4000) {
+        clearReaction();
+        leftEye.classList.add('happy');
+        rightEye.classList.add('happy');
+        setMouth(mouthPaths.happy);
+
+        if (duration > 0) {
+            reactionTimeout = setTimeout(() => {
+                clearReaction();
+                restoreStateAesthetics();
+            }, duration);
+        }
+    }
+
+    function setConfused(duration = 4000) {
+        clearReaction();
+        face.classList.add('confused');
+        setMouth(mouthPaths.confused);
+        lookAt(-0.3, 0.15); // Look confusedly to the side
+
+        if (duration > 0) {
+            reactionTimeout = setTimeout(() => {
+                clearReaction();
+                restoreStateAesthetics();
+            }, duration);
+        }
+    }
+
+    function setSurprised(duration = 3000) {
+        clearReaction();
+        face.classList.add('surprised');
+        setMouth(mouthPaths.surprised);
+        lookCenter();
+
+        if (duration > 0) {
+            reactionTimeout = setTimeout(() => {
+                clearReaction();
+                restoreStateAesthetics();
+            }, duration);
+        }
+    }
+
     // Set mouth path
     function setMouth(pathStr) {
         mouth.setAttribute('d', pathStr);
@@ -143,6 +219,7 @@ const RobotFace = (() => {
 
     // STATE: Idle (default smile, natural blink)
     function setIdle() {
+        clearReaction();
         currentState = 'idle';
         stopSpeaking();
         stopSleepy();
@@ -161,6 +238,7 @@ const RobotFace = (() => {
 
     // STATE: Listening (attentive eyes, neutral mouth)
     function setListening() {
+        clearReaction();
         currentState = 'listening';
         stopSpeaking();
         stopSleepy();
@@ -178,6 +256,7 @@ const RobotFace = (() => {
 
     // STATE: Thinking (mouth corner up, question marks)
     function setThinking() {
+        clearReaction();
         currentState = 'thinking';
         stopSpeaking();
         stopSleepy();
@@ -198,6 +277,7 @@ const RobotFace = (() => {
 
     // STATE: Speaking (mouth animates open/close)
     function setSpeaking() {
+        clearReaction();
         currentState = 'speaking';
         stopSleepy();
         stopIdleLook();
@@ -236,6 +316,7 @@ const RobotFace = (() => {
 
     // STATE: Sleepy
     function setSleepy() {
+        clearReaction();
         currentState = 'sleepy';
         stopSpeaking();
         stopBlinking();
@@ -331,6 +412,9 @@ const RobotFace = (() => {
         lookCenter,
         startIdleLook,
         stopIdleLook,
+        setHappy,
+        setConfused,
+        setSurprised,
         get state() { return currentState; },
         init() {
             setIdle();
