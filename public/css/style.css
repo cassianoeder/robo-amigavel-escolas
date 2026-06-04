@@ -511,8 +511,14 @@ body {
     background: rgba(0,0,0,0.5);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.08);
-    transition: background var(--transition-fast), box-shadow var(--transition-fast);
+    transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
     z-index: 100;
+    cursor: pointer;
+}
+
+.mic-indicator:hover {
+    background: rgba(0,0,0,0.7);
+    transform: translateX(-50%) scale(1.05);
 }
 
 .mic-indicator.listening {

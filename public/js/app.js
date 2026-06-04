@@ -15,6 +15,7 @@ const App = (() => {
     let inactivityTimer = null;
     let lastVoiceActivityTime = Date.now();
     let motionSentThisCycle = false; // Prevent spamming motion webhooks
+    let isManuallyMuted = false; // Tracks if the user clicked to mute the mic
 
     // ===== State Management =====
 
@@ -38,7 +39,11 @@ const App = (() => {
         if (isSleepy) {
             isSleepy = false;
             RobotFace.wakeUp();
-            setMicListening();
+            if (!isManuallyMuted) {
+                setMicListening();
+            } else {
+                setMicInactive('Microfone Mutado');
+            }
         }
 
         resetInactivityTimer();
@@ -78,7 +83,11 @@ const App = (() => {
                 motionSustainedStart = null;
                 RobotFace.wakeUp();
                 lastActivityTime = Date.now();
-                setMicListening();
+                if (!isManuallyMuted) {
+                    setMicListening();
+                } else {
+                    setMicInactive('Microfone Mutado');
+                }
             }
         } else {
             motionSustainedStart = null;
@@ -101,7 +110,7 @@ const App = (() => {
     }
 
     async function sendMotionEvent() {
-        if (!config) return;
+        if (!config || isManuallyMuted) return;
         console.log('[Robô] Enviando evento de movimento detectado');
         
         try {
@@ -162,8 +171,14 @@ const App = (() => {
     function finishProcessing() {
         isProcessing = false;
         RobotFace.setIdle();
-        Speech.enableMic();
-        setMicListening();
+        
+        if (!isManuallyMuted) {
+            Speech.enableMic();
+            setMicListening();
+        } else {
+            setMicInactive('Microfone Mutado');
+        }
+        
         recordActivity();
     }
 
@@ -194,10 +209,33 @@ const App = (() => {
         // Set up callbacks
         Speech.onTranscript(handleTranscript);
         Speech.onListeningStart(() => {
-            if (!isProcessing) setMicListening();
+            if (!isProcessing && !isManuallyMuted) setMicListening();
         });
         Speech.onListeningStop(() => {
-            if (!isProcessing) setMicInactive('Microfone pausado');
+            if (!isProcessing) {
+                if (isManuallyMuted) {
+                    setMicInactive('Microfone Mutado');
+                } else {
+                    setMicInactive('Microfone pausado');
+                }
+            }
+        });
+
+        // Click to Mute Feature
+        micIndicator.addEventListener('click', () => {
+            if (!config || isProcessing) return; // Wait until ready or idle
+
+            if (isManuallyMuted) {
+                // Unmute
+                isManuallyMuted = false;
+                Speech.enableMic();
+                setMicListening();
+            } else {
+                // Mute
+                isManuallyMuted = true;
+                Speech.disableMic();
+                setMicInactive('Microfone Mutado');
+            }
         });
 
         // Motion detection
