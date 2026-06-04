@@ -8,6 +8,7 @@ const RobotFace = (() => {
     let activeSnoreNodes = [];
     // SVG elements
     const face = document.getElementById('robot-face');
+    const faceWrapper = document.querySelector('.robot-face-wrapper');
     const leftEye = document.getElementById('left-eye');
     const rightEye = document.getElementById('right-eye');
     const mouth = document.getElementById('robot-mouth');
@@ -103,6 +104,13 @@ const RobotFace = (() => {
             eye.pupil.setAttribute('cy', iy);
             eye.shine.setAttribute('cy', iy - 20);
         });
+
+        // Rotate the entire head based on horizontal eye direction
+        if (faceWrapper) {
+            const maxTilt = 8; // degrees
+            const tilt = dx * maxTilt;
+            faceWrapper.style.transform = `rotate(${tilt}deg)`;
+        }
     }
 
     // Move eyes to direction (dx: -1 to 1, dy: -1 to 1)

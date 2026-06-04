@@ -401,6 +401,8 @@ body {
     width: 90vw;
     max-width: 850px;
     animation: faceAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 @keyframes faceAppear {
@@ -421,8 +423,24 @@ body {
     stroke: var(--mouth-color);
     stroke-width: 10;
     stroke-linecap: round;
-    transition: transform var(--transition-normal);
+    transition: transform var(--transition-normal), opacity 0.2s, stroke 0.2s;
 }
+
+#robot-face.surprised .eyebrow {
+    transform: translateY(-20px);
+}
+
+#robot-face.confused #left-eyebrow {
+    transform: translateY(-10px) rotate(-10deg);
+}
+#robot-face.confused #right-eyebrow {
+    transform: translateY(10px) rotate(-10deg);
+}
+
+#robot-face.happy .eyebrow {
+    transform: translateY(-5px);
+}
+
 
 /* Blush Cheeks */
 .blush-cheek {
