@@ -424,6 +424,37 @@ body {
     transition: transform var(--transition-normal);
 }
 
+/* Blush Cheeks */
+.blush-cheek {
+    fill: #FF8DA1; /* Soft pink blush */
+    opacity: 0.14; /* Very subtle and almost invisible by default */
+    transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+.blush-cheek.left {
+    transform-origin: 200px 325px;
+}
+.blush-cheek.right {
+    transform-origin: 600px 325px;
+}
+
+/* Blush dynamics for extra cuteness and expression */
+#robot-face.happy .blush-cheek {
+    opacity: 0.35;
+    transform: scale(1.1); /* slightly larger when happy */
+}
+
+#robot-face.speaking .blush-cheek {
+    opacity: 0.28;
+}
+
+#robot-face.sleepy .blush-cheek {
+    opacity: 0.06; /* dimmer/almost completely hidden when sleeping */
+}
+
+#robot-face.confused .blush-cheek {
+    opacity: 0.10;
+}
+
 /* Eyes */
 .eye-white {
     fill: var(--eye-white);

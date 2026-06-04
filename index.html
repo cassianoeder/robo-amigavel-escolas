@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Robô Amigável — Assistente Escolar</title>
     <meta name="description"
-        content="Robô amigável interativo para escolas com reconhecimento de voz e integração n8n.">
+        content="Robô amigável interativo para escolas com reconhecimento de voz e integração com backend.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -94,14 +94,19 @@
         </div>
     </div>
 
-    <!-- ===== SETTINGS GEAR BUTTON ===== -->
-    <button id="btn-settings" class="settings-btn" title="Configurações" aria-label="Abrir configurações">
-        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3" />
-            <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
-    </button>
+    <!-- ===== TOP CONTROLS ===== -->
+    <div class="top-controls">
+        <button id="btn-kids-mode" class="control-btn kids-btn" title="Ativar Modo Kids" aria-label="Modo Kids">
+            👶
+        </button>
+        <button id="btn-settings" class="control-btn settings-btn" title="Configurações" aria-label="Abrir configurações">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+        </button>
+    </div>
 
     <!-- ===== ROBOT FACE CONTAINER ===== -->
     <main id="robot-container" class="robot-container hidden">
@@ -115,6 +120,14 @@
                 <!-- Face background (rounded screen) -->
                 <rect id="face-bg" x="40" y="20" width="720" height="460" rx="80" ry="80" />
 
+                <!-- Eyebrows -->
+                <path id="left-eyebrow" class="eyebrow" d="M 190 80 Q 260 70 330 80" />
+                <path id="right-eyebrow" class="eyebrow" d="M 470 80 Q 540 70 610 80" />
+
+                <!-- Blush Cheeks -->
+                <ellipse class="blush-cheek left" cx="200" cy="325" rx="35" ry="16" />
+                <ellipse class="blush-cheek right" cx="600" cy="325" rx="35" ry="16" />
+
                 <!-- Left Eye -->
                 <g id="left-eye" class="eye">
                     <ellipse class="eye-white" cx="270" cy="210" rx="95" ry="100" />
@@ -123,6 +136,8 @@
                     <ellipse class="eye-shine" cx="252" cy="190" rx="14" ry="18" />
                     <!-- Eyelid for blinking/sleepy -->
                     <ellipse class="eyelid" cx="270" cy="210" rx="100" ry="105" />
+                    <!-- Happy curve -->
+                    <path class="eye-happy-curve" d="M 200 230 Q 270 140 340 230" />
                 </g>
 
                 <!-- Right Eye -->
@@ -133,6 +148,8 @@
                     <ellipse class="eye-shine" cx="512" cy="190" rx="14" ry="18" />
                     <!-- Eyelid for blinking/sleepy -->
                     <ellipse class="eyelid" cx="530" cy="210" rx="100" ry="105" />
+                    <!-- Happy curve -->
+                    <path class="eye-happy-curve" d="M 460 230 Q 530 140 600 230" />
                 </g>
 
                 <!-- Mouth -->
@@ -147,14 +164,28 @@
             </svg>
         </div>
 
-        <!-- Microphone indicator -->
-        <div id="mic-indicator" class="mic-indicator">
-            <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                <path
-                    d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-            </svg>
-            <span class="mic-label" id="mic-label">Ouvindo...</span>
+        <!-- Bottom controls: Mic and Noise indicators -->
+        <div class="bottom-controls">
+            <!-- Microphone indicator -->
+            <div id="mic-indicator" class="mic-indicator">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                    <path
+                        d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                </svg>
+                <span class="mic-label" id="mic-label">Ouvindo...</span>
+            </div>
+
+            <!-- Noise warning indicator (Option 3: Ear + Noise waves) -->
+            <div id="noise-warning" class="noise-warning hidden" title="Ambiente muito barulhento. Fale de perto do robô!">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0" />
+                    <path d="M15 8.5a2.5 2.5 0 0 0-5 0v1.2" />
+                    <path d="M3 9.5a4 4 0 0 1 0 5" class="noise-wave" />
+                    <path d="M1 7a7 7 0 0 1 0 10" class="noise-wave" />
+                </svg>
+                <span>Ruído Alto</span>
+            </div>
         </div>
     </main>
 

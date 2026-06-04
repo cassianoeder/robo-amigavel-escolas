@@ -150,7 +150,7 @@ const RobotFace = (() => {
             reactionTimeout = null;
         }
         if (face) {
-            face.classList.remove('confused', 'surprised');
+            face.classList.remove('confused', 'surprised', 'happy');
         }
         if (leftEye && rightEye) {
             leftEye.classList.remove('happy');
@@ -174,6 +174,7 @@ const RobotFace = (() => {
 
     function setHappy(duration = 4000) {
         clearReaction();
+        if (face) face.classList.add('happy');
         leftEye.classList.add('happy');
         rightEye.classList.add('happy');
         setMouth(mouthPaths.happy);
@@ -223,6 +224,7 @@ const RobotFace = (() => {
     function setIdle() {
         clearReaction();
         currentState = 'idle';
+        if (face) face.classList.remove('speaking', 'sleepy');
         stopSpeaking();
         stopSleepy();
         stopIdleLook();
@@ -242,6 +244,7 @@ const RobotFace = (() => {
     function setListening() {
         clearReaction();
         currentState = 'listening';
+        if (face) face.classList.remove('speaking', 'sleepy');
         stopSpeaking();
         stopSleepy();
         stopIdleLook();
@@ -260,6 +263,7 @@ const RobotFace = (() => {
     function setThinking() {
         clearReaction();
         currentState = 'thinking';
+        if (face) face.classList.remove('speaking', 'sleepy');
         stopSpeaking();
         stopSleepy();
         stopIdleLook();
@@ -281,6 +285,10 @@ const RobotFace = (() => {
     function setSpeaking() {
         clearReaction();
         currentState = 'speaking';
+        if (face) {
+            face.classList.remove('sleepy');
+            face.classList.add('speaking');
+        }
         stopSleepy();
         stopIdleLook();
 
@@ -314,12 +322,19 @@ const RobotFace = (() => {
             clearInterval(speakingInterval);
             speakingInterval = null;
         }
+        if (face) {
+            face.classList.remove('speaking');
+        }
     }
 
     // STATE: Sleepy
     function setSleepy() {
         clearReaction();
         currentState = 'sleepy';
+        if (face) {
+            face.classList.remove('speaking');
+            face.classList.add('sleepy');
+        }
         stopSpeaking();
         stopBlinking();
 
