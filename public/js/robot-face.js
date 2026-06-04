@@ -107,9 +107,13 @@ const RobotFace = (() => {
 
         // Rotate the entire head based on horizontal eye direction
         if (faceWrapper) {
-            const maxTilt = 8; // degrees
-            const tilt = dx * maxTilt;
-            faceWrapper.style.transform = `rotate(${tilt}deg)`;
+            const maxTiltY = 12; // degrees for 3D turn
+            const maxSlideX = 30; // pixels to slide horizontally
+            
+            const tiltY = dx * maxTiltY;
+            const slideX = dx * maxSlideX;
+            
+            faceWrapper.style.transform = `translateX(${slideX}px) rotateY(${tiltY}deg)`;
         }
     }
 
