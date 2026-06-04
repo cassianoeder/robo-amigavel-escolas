@@ -110,14 +110,37 @@ const Speech = (() => {
     // Clean text before sending to SpeechSynthesis to prevent reading markdown symbols or emojis weirdly
     function cleanTextForTTS(text) {
         if (typeof text !== 'string') return '';
+
+        let cleaned = text;
+
         // 1. Remove emojis using Unicode Property Escapes (supported in modern browsers)
-        let cleaned = text.replace(/\p{Extended_Pictographic}/gu, '');
+        cleaned = cleaned.replace(/\p{Extended_Pictographic}/gu, '');
+
         // 2. Remove markdown formatting characters: #, *, _, ~, `
         cleaned = cleaned.replace(/[#*_~`]/g, '');
-        // 3. Replace newlines with periods so the TTS pauses naturally between paragraphs/lines
+
+        // 3. HYBRID VOWEL STRATEGY
+        // Step 3a — Convert letter-based list markers to readable form before anything else.
+        //   Matches patterns like:  "A) item", "B) item", "A - item", "A. item"
+        //   (single uppercase letter at line start or after newline followed by ), -, .)
+        //   We replace the punctuation with a colon so TTS reads it as "A: item"
+        cleaned = cleaned.replace(/(?:^|(?<=\n))([A-Z])\s*[)\-\.]\s*/gm, '$1: ');
+
+        // Step 3b — Expand STANDALONE UPPERCASE vowels that are isolated words.
+        //   Only uppercase (A, E, I, O, U) surrounded by whitespace or start/end of string.
+        //   Lowercase a / e / o are left alone — they are normal PT-BR articles/conjunctions.
+        //   The map gives the most natural PT-BR spoken equivalent for each vowel:
+        const vowelMap = { A: 'Ah', E: 'Eh', I: 'Ih', O: 'Oh', U: 'Uh' };
+        cleaned = cleaned.replace(/(?<![A-Za-zÀ-ú])([AEIOU])(?![A-Za-zÀ-ú])/g, (match, vowel) => {
+            return vowelMap[vowel] || vowel;
+        });
+
+        // 4. Replace newlines with periods so the TTS pauses naturally between paragraphs/lines
         cleaned = cleaned.replace(/\n+/g, ' . ');
-        // 4. Normalize multiple spaces
+
+        // 5. Normalize multiple spaces
         cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
         return cleaned;
     }
 
