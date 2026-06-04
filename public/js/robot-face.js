@@ -227,6 +227,60 @@ const RobotFace = (() => {
         }
     }
 
+    // ==========================================
+    // Contextual Visual Effects (Love, Hot, Cold)
+    // ==========================================
+    let activeEffect = null;
+    let heartInterval = null;
+
+    function startEffect(effect) {
+        stopEffect(); // clear any previous
+        if (!effect) return;
+
+        activeEffect = effect;
+        faceWrapper.classList.add(`effect-${effect}`);
+
+        if (effect === 'love') {
+            const heartsContainer = document.getElementById('floating-hearts');
+            if (heartsContainer) {
+                // Spawn a heart every 300ms
+                heartInterval = setInterval(() => {
+                    const heart = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    // Simple SVG heart path
+                    heart.setAttribute('d', 'M 10 30 A 20 20 0 0 1 50 30 A 20 20 0 0 1 90 30 Q 90 60 50 90 Q 10 60 10 30 Z');
+                    heart.setAttribute('fill', '#ff4b4b');
+                    heart.setAttribute('class', 'floating-heart');
+                    
+                    // Randomize position and scale
+                    const randomX = 150 + Math.random() * 500;
+                    const randomY = 300 + Math.random() * 100;
+                    // Note: transform applies to origin, we set initial pos via style or transform
+                    heart.style.transformOrigin = "50px 50px";
+                    heart.style.transform = `translate(${randomX}px, ${randomY}px) scale(${0.3 + Math.random() * 0.3})`;
+                    
+                    heartsContainer.appendChild(heart);
+
+                    // Remove after animation completes
+                    setTimeout(() => {
+                        if (heart.parentNode) heart.parentNode.removeChild(heart);
+                    }, 2000);
+
+                }, 400);
+            }
+        }
+    }
+
+    function stopEffect() {
+        if (activeEffect) {
+            faceWrapper.classList.remove(`effect-${activeEffect}`);
+            activeEffect = null;
+        }
+        if (heartInterval) {
+            clearInterval(heartInterval);
+            heartInterval = null;
+        }
+    }
+
     // Set mouth path
     function setMouth(pathStr) {
         mouth.setAttribute('d', pathStr);
@@ -567,6 +621,8 @@ const RobotFace = (() => {
         setHappy,
         setConfused,
         setSurprised,
+        startEffect,
+        stopEffect,
         setAudioContext,
         get state() { return currentState; },
         init() {

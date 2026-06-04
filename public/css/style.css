@@ -820,3 +820,46 @@ body {
         height: 22px;
     }
 }
+
+
+/* ============================================
+   CONTEXTUAL EFFECTS (Love, Hot, Cold)
+   ============================================ */
+   
+/* Freeze Effect */
+.effect-cold #face-bg {
+    fill: #bce3ff !important;
+    transition: fill 2s ease !important;
+}
+
+/* Hot Effect (Sweat drops) */
+.effect-hot #sweat-drops {
+    display: block !important;
+}
+.effect-hot .sweat-drop {
+    animation: sweatDrip 1.5s infinite;
+}
+.effect-hot .sweat-drop:nth-child(2) {
+    animation-delay: 0.75s;
+}
+
+@keyframes sweatDrip {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    20% { opacity: 0.8; }
+    80% { transform: translateY(80px) scale(1); opacity: 0.8; }
+    100% { transform: translateY(100px) scale(1); opacity: 0; }
+}
+
+/* Love Effect (Floating Hearts) */
+.floating-heart {
+    animation: floatHeart 2s forwards ease-in;
+    transform-origin: center;
+}
+
+@keyframes floatHeart {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    15% { opacity: 0.9; transform: translateY(-20px) scale(1.1); }
+    80% { opacity: 0.8; transform: translateY(-120px) scale(0.8); }
+    100% { transform: translateY(-150px) scale(0.5); opacity: 0; }
+}
+

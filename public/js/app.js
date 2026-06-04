@@ -172,11 +172,22 @@ const App = (() => {
     async function speakResponse(text) {
         console.log('[Robô] Falando:', text);
 
+        // Detect visual effects from keywords
+        const effect = Speech.detectEffect(text);
+
         setMicInactive('Falando...');
         RobotFace.setSpeaking();
         RobotFace.setHappy(4000); // Show happy face/eyes during the first 4s of speech
 
+        if (effect) {
+            RobotFace.startEffect(effect);
+        }
+
         await Speech.speak(text, config.vozIndex, config.velocidadeFala);
+
+        if (effect) {
+            RobotFace.stopEffect();
+        }
 
         // Wait 1 second after finishing speech before re-enabling mic
         setTimeout(() => {

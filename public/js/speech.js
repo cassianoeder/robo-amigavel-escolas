@@ -144,6 +144,16 @@ const Speech = (() => {
         return cleaned;
     }
 
+    function detectEffect(text) {
+        if (!text) return null;
+        const lower = text.toLowerCase();
+        // Check for keywords
+        if (/(amor|afeto|carinho|te amo|apaixonad|lindo)/.test(lower)) return 'love';
+        if (/(quente|calor|fogo|suar|suando|queimando)/.test(lower)) return 'hot';
+        if (/(frio|congelando|gelo|neve|azul|gelad)/.test(lower)) return 'cold';
+        return null;
+    }
+
     function speak(text, voiceIndex = 0, rate = 1.0) {
         return new Promise((resolve) => {
             // Cancel any ongoing speech
@@ -305,7 +315,9 @@ const Speech = (() => {
         onSpeechStart(cb) { onSpeechStart = cb; },
         onSpeechEnd(cb) { onSpeechEnd = cb; },
         onListeningStart(cb) { onListeningStart = cb; },
-        onListeningStop(cb) { onListeningStop = cb; },
+        onListeningStop: (cb) => onListeningStop = cb,
+        cleanTextForTTS,
+        detectEffect,
         onNoiseLevelChange(cb) { onNoiseLevelChangeCallback = cb; }
     };
 })();
