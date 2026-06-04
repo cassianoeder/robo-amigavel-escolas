@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Robô Amigável — Assistente Escolar</title>
+    <meta name="description"
+        content="Robô amigável interativo para escolas com reconhecimento de voz e integração n8n.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- ===== CONFIG MODAL ===== -->
+    <div id="config-overlay" class="modal-overlay active">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-icon">⚙️</div>
+                <h1 id="modal-title">Configurar Robô</h1>
+                <p class="modal-subtitle">Preencha a URL do webhook para ativar o robô</p>
+            </div>
+
+            <form id="config-form" class="modal-body" autocomplete="off">
+                <!-- Webhook URL -->
+                <div class="field-group">
+                    <label for="cfg-webhook">URL do Webhook (Backend)<span class="required">*</span></label>
+                    <input type="url" id="cfg-webhook" placeholder="https://seu-backend.com/webhook/..." required>
+                </div>
+
+                <!-- JWT Token -->
+                <div class="field-group">
+                    <label for="cfg-token">Token JWT Bearer <span class="optional">(opcional)</span></label>
+                    <input type="text" id="cfg-token" placeholder="eyJhbGciOiJIUzI1NiIs...">
+                </div>
+
+                <!-- Accent Color -->
+                <div class="field-group">
+                    <label>Cor de destaque do robô</label>
+                    <div class="color-options" id="cfg-colors">
+                        <button type="button" class="color-btn" data-color="rosa" style="--swatch:#FF69B4" title="Rosa">
+                            <span class="swatch"></span><span class="color-label">Rosa</span>
+                        </button>
+                        <button type="button" class="color-btn" data-color="verde-neon" style="--swatch:#39FF14"
+                            title="Verde Neon">
+                            <span class="swatch"></span><span class="color-label">Verde Neon</span>
+                        </button>
+                        <button type="button" class="color-btn selected" data-color="azul-escuro"
+                            style="--swatch:#1B3A6B" title="Azul Escuro">
+                            <span class="swatch"></span><span class="color-label">Azul Escuro</span>
+                        </button>
+                        <button type="button" class="color-btn" data-color="laranja" style="--swatch:#FF6B35"
+                            title="Laranja">
+                            <span class="swatch"></span><span class="color-label">Laranja</span>
+                        </button>
+                        <button type="button" class="color-btn" data-color="branco" style="--swatch:#FFFFFF"
+                            title="Branco">
+                            <span class="swatch"></span><span class="color-label">Branco</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Voice -->
+                <div class="field-group">
+                    <label for="cfg-voice">Voz</label>
+                    <select id="cfg-voice">
+                        <option value="">Carregando vozes...</option>
+                    </select>
+                </div>
+
+                <!-- Speech Rate -->
+                <div class="field-group">
+                    <label for="cfg-rate">Velocidade da fala: <span id="rate-value">1.0</span>x</label>
+                    <input type="range" id="cfg-rate" min="0.5" max="2" step="0.1" value="1.0">
+                </div>
+
+                <!-- Sleepiness Timeout -->
+                <div class="field-group">
+                    <label for="cfg-sleep">Modo sonolência após inatividade</label>
+                    <select id="cfg-sleep">
+                        <option value="20">20 segundos</option>
+                        <option value="40" selected>40 segundos</option>
+                        <option value="60">1 minuto</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary" id="btn-save-config">
+                    <span class="btn-icon">🤖</span> Ativar Robô
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== SETTINGS GEAR BUTTON ===== -->
+    <button id="btn-settings" class="settings-btn" title="Configurações" aria-label="Abrir configurações">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+    </button>
+
+    <!-- ===== ROBOT FACE CONTAINER ===== -->
+    <main id="robot-container" class="robot-container hidden">
+        <!-- Hidden video for camera/motion detection -->
+        <video id="camera-feed" autoplay playsinline muted></video>
+        <canvas id="motion-canvas"></canvas>
+
+        <!-- Robot Face SVG -->
+        <div class="robot-face-wrapper">
+            <svg id="robot-face" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                <!-- Face background (rounded screen) -->
+                <rect id="face-bg" x="40" y="20" width="720" height="460" rx="80" ry="80" />
+
+                <!-- Left Eye -->
+                <g id="left-eye" class="eye">
+                    <ellipse class="eye-white" cx="270" cy="210" rx="95" ry="100" />
+                    <circle class="eye-iris" cx="270" cy="210" r="50" />
+                    <circle class="eye-pupil" cx="270" cy="210" r="25" />
+                    <ellipse class="eye-shine" cx="252" cy="190" rx="14" ry="18" />
+                    <!-- Eyelid for blinking/sleepy -->
+                    <ellipse class="eyelid" cx="270" cy="210" rx="100" ry="105" />
+                </g>
+
+                <!-- Right Eye -->
+                <g id="right-eye" class="eye">
+                    <ellipse class="eye-white" cx="530" cy="210" rx="95" ry="100" />
+                    <circle class="eye-iris" cx="530" cy="210" r="50" />
+                    <circle class="eye-pupil" cx="530" cy="210" r="25" />
+                    <ellipse class="eye-shine" cx="512" cy="190" rx="14" ry="18" />
+                    <!-- Eyelid for blinking/sleepy -->
+                    <ellipse class="eyelid" cx="530" cy="210" rx="100" ry="105" />
+                </g>
+
+                <!-- Mouth -->
+                <path id="robot-mouth" class="mouth" d="M 300 370 Q 400 420 500 370" />
+
+                <!-- Question marks (thinking state) -->
+                <g id="question-marks" class="question-marks hidden">
+                    <text x="620" y="120" class="qmark q1">?</text>
+                    <text x="660" y="80" class="qmark q2">?</text>
+                    <text x="700" y="130" class="qmark q3">?</text>
+                </g>
+            </svg>
+        </div>
+
+        <!-- Microphone indicator -->
+        <div id="mic-indicator" class="mic-indicator">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                <path
+                    d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+            </svg>
+            <span class="mic-label" id="mic-label">Ouvindo...</span>
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/robot-face.js"></script>
+    <script src="js/speech.js"></script>
+    <script src="js/motion.js"></script>
+    <script src="js/webhook.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
