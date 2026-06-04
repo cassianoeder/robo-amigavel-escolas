@@ -379,13 +379,35 @@ const RobotFace = (() => {
         }
     }
 
+    let audioCtx = null;
+
+    // Allow injecting an already-authorized AudioContext from outside
+    // (avoids autoplay policy issues since speech.js already asks for mic permission)
+    function setAudioContext(ctx) {
+        audioCtx = ctx;
+    }
+
+    function getAudioContext() {
+        if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                audioCtx = new AudioContextClass();
+            }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(e => console.warn('Falha ao resumir AudioContext:', e));
+        }
+        return audioCtx;
+    }
+
     function startSnoring() {
         stopSnoring();
 
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-
-        let audioCtx = null;
+        const ctx = getAudioContext();
+        if (!ctx) {
+            console.warn('[Robô] AudioContext indisponível para ronco.');
+            return;
+        }
 
         const playSnoreCycle = () => {
             if (currentState !== 'sleepy') {
@@ -394,60 +416,52 @@ const RobotFace = (() => {
             }
 
             try {
-                if (!audioCtx) {
-                    audioCtx = new AudioContextClass();
-                }
-                
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-
-                const now = audioCtx.currentTime;
+                const now = ctx.currentTime;
 
                 // --- IN-BREATH (Low Mechanical Snore) ---
-                const oscIn = audioCtx.createOscillator();
-                const gainIn = audioCtx.createGain();
-                
+                const oscIn = ctx.createOscillator();
+                const gainIn = ctx.createGain();
+
                 oscIn.type = 'sawtooth';
-                oscIn.frequency.setValueAtTime(55, now);
-                oscIn.frequency.linearRampToValueAtTime(70, now + 1.8);
+                oscIn.frequency.setValueAtTime(110, now);
+                oscIn.frequency.linearRampToValueAtTime(130, now + 1.8);
 
                 gainIn.gain.setValueAtTime(0, now);
-                gainIn.gain.linearRampToValueAtTime(0.08, now + 0.4);
-                gainIn.gain.linearRampToValueAtTime(0.08, now + 1.4);
+                gainIn.gain.linearRampToValueAtTime(0.45, now + 0.4);
+                gainIn.gain.linearRampToValueAtTime(0.45, now + 1.4);
                 gainIn.gain.linearRampToValueAtTime(0, now + 1.8);
 
                 oscIn.connect(gainIn);
-                gainIn.connect(audioCtx.destination);
-                
+                gainIn.connect(ctx.destination);
+
                 oscIn.start(now);
                 oscIn.stop(now + 1.8);
 
                 activeSnoreNodes.push(oscIn, gainIn);
 
                 // --- OUT-BREATH (Soft Whistle Sigh) ---
-                const oscOut = audioCtx.createOscillator();
-                const gainOut = audioCtx.createGain();
+                const oscOut = ctx.createOscillator();
+                const gainOut = ctx.createGain();
 
                 oscOut.type = 'sine';
                 oscOut.frequency.setValueAtTime(320, now + 2.2);
                 oscOut.frequency.exponentialRampToValueAtTime(220, now + 3.7);
 
                 gainOut.gain.setValueAtTime(0, now + 2.2);
-                gainOut.gain.linearRampToValueAtTime(0.02, now + 2.5);
+                gainOut.gain.linearRampToValueAtTime(0.25, now + 2.5);
                 gainOut.gain.linearRampToValueAtTime(0, now + 3.7);
 
                 oscOut.connect(gainOut);
-                gainOut.connect(audioCtx.destination);
+                gainOut.connect(ctx.destination);
 
                 oscOut.start(now + 2.2);
                 oscOut.stop(now + 3.7);
 
                 activeSnoreNodes.push(oscOut, gainOut);
 
-                // Clean up nodes after they finish playing
+                // Clean up finished nodes
                 setTimeout(() => {
-                    activeSnoreNodes = activeSnoreNodes.filter(node => node !== oscIn && node !== gainIn && node !== oscOut && node !== gainOut);
+                    activeSnoreNodes = activeSnoreNodes.filter(n => n !== oscIn && n !== gainIn && n !== oscOut && n !== gainOut);
                 }, 4000);
 
             } catch (e) {
@@ -455,8 +469,16 @@ const RobotFace = (() => {
             }
         };
 
-        playSnoreCycle();
-        snoreInterval = setInterval(playSnoreCycle, 4500); // 4.5 seconds repeat cycle
+        const doStart = () => {
+            playSnoreCycle();
+            snoreInterval = setInterval(playSnoreCycle, 4500);
+        };
+
+        if (ctx.state === 'suspended') {
+            ctx.resume().then(doStart).catch(e => console.warn('Erro ao resumir ctx:', e));
+        } else {
+            doStart();
+        }
     }
 
     function stopSnoring() {
@@ -518,6 +540,7 @@ const RobotFace = (() => {
         setHappy,
         setConfused,
         setSurprised,
+        setAudioContext,
         get state() { return currentState; },
         init() {
             setIdle();

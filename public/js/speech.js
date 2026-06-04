@@ -257,6 +257,10 @@ const Speech = (() => {
         requestMicPermission,
         startVolumeAnalysis,
 
+        // Expose the AudioContext so other modules can reuse it
+        // (avoids browsers blocking audio created outside user gesture)
+        getAudioContext() { return audioContext; },
+
         // Callbacks
         onTranscript(cb) { onTranscript = cb; },
         onSpeechStart(cb) { onSpeechStart = cb; },

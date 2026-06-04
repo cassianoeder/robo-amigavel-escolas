@@ -269,10 +269,23 @@ const App = (() => {
                 isManuallyMuted = true;
                 Speech.disableMic();
                 setMicInactive('Microfone Mutado');
-                
-                // Force sleep mode immediately when muting
-                isSleepy = true;
-                RobotFace.setSleepy();
+
+                // This click IS the user gesture — create/inject AudioContext now
+                // so RobotFace.startSnoring() can play audio without being blocked
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    const freshCtx = new AudioContextClass();
+                    // Resume immediately (we're inside a click handler)
+                    freshCtx.resume().then(() => {
+                        RobotFace.setAudioContext(freshCtx);
+                        // Force sleep mode after context is ready
+                        isSleepy = true;
+                        RobotFace.setSleepy();
+                    });
+                } else {
+                    isSleepy = true;
+                    RobotFace.setSleepy();
+                }
             }
         });
 
@@ -291,7 +304,21 @@ const App = (() => {
                 console.log('[Robô] Som alto detectado! Reagindo com surpresa.');
                 RobotFace.setSurprised(3000);
             }
+        }).then(() => {
+            // Share the authorized AudioContext with RobotFace so snoring works
+            const ctx = Speech.getAudioContext();
+            if (ctx) RobotFace.setAudioContext(ctx);
+        }).catch(() => {
+            // startVolumeAnalysis doesn't return a promise if audioContext already exists; try directly
+            const ctx = Speech.getAudioContext();
+            if (ctx) RobotFace.setAudioContext(ctx);
         });
+
+        // Also inject immediately in case startVolumeAnalysis was already called before
+        setTimeout(() => {
+            const ctx = Speech.getAudioContext();
+            if (ctx) RobotFace.setAudioContext(ctx);
+        }, 1000);
 
         setMicListening();
         resetInactivityTimer();
