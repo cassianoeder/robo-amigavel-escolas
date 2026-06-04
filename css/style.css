@@ -1,0 +1,602 @@
+/* ============================================
+   ROBÔ AMIGÁVEL — DESIGN SYSTEM & STYLES
+   ============================================ */
+
+/* --- CSS Custom Properties (Themes) --- */
+:root {
+    --bg-primary: #0D0D1A;
+    --bg-secondary: #1A1A2E;
+    --text-primary: #EAEAEA;
+    --text-muted: #8888AA;
+    --accent: #1B3A6B;
+    --accent-glow: rgba(27, 58, 107, 0.4);
+    --face-bg: var(--accent);
+    --eye-white: #FFFFFF;
+    --eye-iris: #3B2F1E;
+    --eye-pupil: #1A1208;
+    --eye-shine: rgba(255, 255, 255, 0.85);
+    --mouth-color: #FFFFFF;
+    --eyelid-color: var(--accent);
+    --modal-bg: rgba(13, 13, 26, 0.95);
+    --card-bg: #16162A;
+    --card-border: rgba(255, 255, 255, 0.08);
+    --input-bg: #0D0D1A;
+    --input-border: rgba(255, 255, 255, 0.12);
+    --input-focus: var(--accent);
+    --mic-active: #39FF14;
+    --mic-inactive: #FF3B3B;
+    --font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.35s ease;
+    --transition-slow: 0.6s ease;
+}
+
+/* Color Themes */
+[data-theme="rosa"] {
+    --accent: #FF69B4;
+    --accent-glow: rgba(255, 105, 180, 0.35);
+    --face-bg: #FF69B4;
+    --eyelid-color: #FF69B4;
+}
+[data-theme="verde-neon"] {
+    --accent: #39FF14;
+    --accent-glow: rgba(57, 255, 20, 0.3);
+    --face-bg: #22CC10;
+    --eyelid-color: #22CC10;
+}
+[data-theme="azul-escuro"] {
+    --accent: #1B3A6B;
+    --accent-glow: rgba(27, 58, 107, 0.4);
+    --face-bg: #1B3A6B;
+    --eyelid-color: #1B3A6B;
+}
+[data-theme="laranja"] {
+    --accent: #FF6B35;
+    --accent-glow: rgba(255, 107, 53, 0.35);
+    --face-bg: #FF6B35;
+    --eyelid-color: #FF6B35;
+}
+[data-theme="branco"] {
+    --accent: #E8E8F0;
+    --accent-glow: rgba(232, 232, 240, 0.3);
+    --face-bg: #D8D8E8;
+    --eyelid-color: #D8D8E8;
+    --eye-iris: #5A4F3E;
+}
+
+/* --- Reset & Base --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font-family);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* ============================================
+   MODAL — CONFIGURATION
+   ============================================ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: var(--modal-bg);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-normal), visibility var(--transition-normal);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    width: 90%;
+    max-width: 460px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 36px 32px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 60px var(--accent-glow);
+    animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalSlideIn {
+    from { transform: translateY(30px) scale(0.96); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.modal-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    animation: iconBounce 2s ease infinite;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.modal-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+}
+
+.modal-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Form Fields */
+.field-group {
+    margin-bottom: 20px;
+}
+
+.field-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.required { color: #FF3B3B; }
+.optional { color: var(--text-muted); font-weight: 400; text-transform: none; font-size: 0.78rem; }
+
+.field-group input[type="url"],
+.field-group input[type="text"],
+.field-group select {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.field-group input:focus,
+.field-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.field-group input::placeholder {
+    color: rgba(255,255,255,0.2);
+}
+
+/* Range slider */
+.field-group input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+.field-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+.field-group input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: none;
+}
+
+/* Color Buttons */
+.color-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.color-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    background: transparent;
+    border: 2px solid var(--input-border);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
+    flex: 1;
+    min-width: 70px;
+}
+
+.color-btn:hover {
+    border-color: rgba(255,255,255,0.25);
+    transform: translateY(-2px);
+}
+
+.color-btn.selected {
+    border-color: var(--swatch);
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 12px rgba(255,255,255,0.05);
+}
+
+.swatch {
+    display: block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--swatch);
+    border: 2px solid rgba(255,255,255,0.15);
+}
+
+.color-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+/* Primary Button */
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    margin-top: 8px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-family: var(--font-family);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--accent-glow);
+    filter: brightness(1.15);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+[data-theme="branco"] .btn-primary {
+    color: #1A1A2E;
+}
+
+/* Settings gear button */
+.settings-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 500;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    backdrop-filter: blur(8px);
+}
+
+.settings-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.1);
+    transform: rotate(30deg);
+}
+
+/* ============================================
+   ROBOT FACE
+   ============================================ */
+.robot-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: var(--bg-primary);
+    transition: opacity var(--transition-slow);
+}
+
+.robot-container.hidden {
+    display: none;
+}
+
+#camera-feed,
+#motion-canvas {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.robot-face-wrapper {
+    width: 90vw;
+    max-width: 850px;
+    animation: faceAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes faceAppear {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+
+/* SVG Face */
+#face-bg {
+    fill: var(--face-bg);
+    filter: drop-shadow(0 8px 40px var(--accent-glow));
+    transition: fill var(--transition-normal);
+}
+
+/* Eyes */
+.eye-white {
+    fill: var(--eye-white);
+}
+
+.eye-iris {
+    fill: var(--eye-iris);
+    transition: cx 0.15s ease, cy 0.15s ease;
+}
+
+.eye-pupil {
+    fill: var(--eye-pupil);
+    transition: cx 0.15s ease, cy 0.15s ease;
+}
+
+.eye-shine {
+    fill: var(--eye-shine);
+    transition: cx 0.15s ease, cy 0.15s ease;
+}
+
+/* Eyelid — for blinking and sleepy */
+.eyelid {
+    fill: var(--eyelid-color);
+    transform-origin: center center;
+    transform: translateY(-105px);
+    transition: transform 0.15s ease, fill var(--transition-normal);
+}
+
+/* Blink animation */
+.eye.blink .eyelid {
+    animation: blinkAnim 0.2s ease-in-out;
+}
+
+@keyframes blinkAnim {
+    0%   { transform: translateY(-105px); }
+    45%  { transform: translateY(0px); }
+    55%  { transform: translateY(0px); }
+    100% { transform: translateY(-105px); }
+}
+
+/* Sleepy eyelids — half closed */
+.eye.sleepy .eyelid {
+    transform: translateY(-30px);
+    transition: transform 1.5s ease;
+}
+
+/* Sleepy peek — eyes open slightly */
+.eye.sleepy-peek .eyelid {
+    transform: translateY(-50px);
+    transition: transform 1s ease;
+}
+
+/* Full closed (yawn) */
+.eye.closed .eyelid {
+    transform: translateY(0px);
+    transition: transform 0.8s ease;
+}
+
+/* Mouth */
+.mouth {
+    fill: none;
+    stroke: var(--mouth-color);
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: d 0.4s ease;
+}
+
+/* Mouth states via CSS classes — JS will update the `d` attribute */
+
+/* Question marks */
+.question-marks.hidden {
+    display: none;
+}
+
+.qmark {
+    font-family: var(--font-family);
+    font-size: 42px;
+    font-weight: 700;
+    fill: var(--mouth-color);
+    opacity: 0;
+}
+
+.question-marks.visible .q1 {
+    animation: qmarkFloat 1.2s ease-in-out infinite;
+}
+.question-marks.visible .q2 {
+    animation: qmarkFloat 1.2s ease-in-out 0.3s infinite;
+}
+.question-marks.visible .q3 {
+    animation: qmarkFloat 1.2s ease-in-out 0.6s infinite;
+}
+
+@keyframes qmarkFloat {
+    0%   { opacity: 0; transform: translateY(10px); }
+    30%  { opacity: 1; }
+    70%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-15px); }
+}
+
+
+
+/* Speaking mouth animation */
+.mouth.speaking {
+    animation: speakingMouth 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes speakingMouth {
+    0%   { stroke-width: 6; }
+    100% { stroke-width: 10; }
+}
+
+/* ============================================
+   MICROPHONE INDICATOR
+   ============================================ */
+.mic-indicator {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 50px;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: background var(--transition-fast), box-shadow var(--transition-fast);
+    z-index: 100;
+}
+
+.mic-indicator.listening {
+    color: var(--mic-active);
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.15);
+    animation: micPulse 1.5s ease-in-out infinite;
+}
+
+.mic-indicator.inactive {
+    color: var(--mic-inactive);
+    box-shadow: 0 0 20px rgba(255, 59, 59, 0.15);
+    animation: none;
+}
+
+@keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(57, 255, 20, 0.1); }
+    50%      { box-shadow: 0 0 35px rgba(57, 255, 20, 0.3); }
+}
+
+.mic-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* ============================================
+   UTILITY & ANIMATIONS
+   ============================================ */
+.hidden {
+    display: none !important;
+}
+
+/* Ambient background glow */
+.robot-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60vw;
+    height: 60vh;
+    background: radial-gradient(ellipse, var(--accent-glow), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: ambientGlow 6s ease-in-out infinite;
+}
+
+@keyframes ambientGlow {
+    0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+    50%      { opacity: 0.6; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+.robot-face-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+/* Scrollbar for modal */
+.modal-card::-webkit-scrollbar {
+    width: 6px;
+}
+.modal-card::-webkit-scrollbar-track {
+    background: transparent;
+}
+.modal-card::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .modal-card {
+        padding: 24px 20px;
+        border-radius: 20px;
+    }
+    .color-btn {
+        min-width: 56px;
+        padding: 8px 6px;
+    }
+    .color-label {
+        font-size: 0.6rem;
+    }
+    .swatch {
+        width: 22px;
+        height: 22px;
+    }
+}
