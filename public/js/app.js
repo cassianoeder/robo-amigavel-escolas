@@ -258,11 +258,21 @@ const App = (() => {
                 isManuallyMuted = false;
                 Speech.enableMic();
                 setMicListening();
+                
+                // Wake up immediately when unmuting
+                isSleepy = false;
+                RobotFace.wakeUp();
+                lastActivityTime = Date.now();
+                lastVoiceActivityTime = Date.now();
             } else {
                 // Mute
                 isManuallyMuted = true;
                 Speech.disableMic();
                 setMicInactive('Microfone Mutado');
+                
+                // Force sleep mode immediately when muting
+                isSleepy = true;
+                RobotFace.setSleepy();
             }
         });
 

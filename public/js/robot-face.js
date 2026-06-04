@@ -4,6 +4,8 @@
 
 const RobotFace = (() => {
     let yawnTimeout = null;
+    let snoreInterval = null;
+    let activeSnoreNodes = [];
     // SVG elements
     const face = document.getElementById('robot-face');
     const leftEye = document.getElementById('left-eye');
@@ -330,6 +332,7 @@ const RobotFace = (() => {
         rightEye.setAttribute('class', 'eye sleepy');
         setMouth(mouthPaths.sleepy);
         lookCenter();
+        startSnoring();
 
         // Periodic yawns and peeks
         stopSleepy();
@@ -365,6 +368,7 @@ const RobotFace = (() => {
     }
 
     function stopSleepy() {
+        stopSnoring();
         if (sleepyInterval) {
             clearInterval(sleepyInterval);
             sleepyInterval = null;
@@ -373,6 +377,105 @@ const RobotFace = (() => {
             clearTimeout(yawnTimeout);
             yawnTimeout = null;
         }
+    }
+
+    function startSnoring() {
+        stopSnoring();
+
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        let audioCtx = null;
+
+        const playSnoreCycle = () => {
+            if (currentState !== 'sleepy') {
+                stopSnoring();
+                return;
+            }
+
+            try {
+                if (!audioCtx) {
+                    audioCtx = new AudioContextClass();
+                }
+                
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const now = audioCtx.currentTime;
+
+                // --- IN-BREATH (Low Mechanical Snore) ---
+                const oscIn = audioCtx.createOscillator();
+                const gainIn = audioCtx.createGain();
+                
+                oscIn.type = 'sawtooth';
+                oscIn.frequency.setValueAtTime(55, now);
+                oscIn.frequency.linearRampToValueAtTime(70, now + 1.8);
+
+                gainIn.gain.setValueAtTime(0, now);
+                gainIn.gain.linearRampToValueAtTime(0.08, now + 0.4);
+                gainIn.gain.linearRampToValueAtTime(0.08, now + 1.4);
+                gainIn.gain.linearRampToValueAtTime(0, now + 1.8);
+
+                oscIn.connect(gainIn);
+                gainIn.connect(audioCtx.destination);
+                
+                oscIn.start(now);
+                oscIn.stop(now + 1.8);
+
+                activeSnoreNodes.push(oscIn, gainIn);
+
+                // --- OUT-BREATH (Soft Whistle Sigh) ---
+                const oscOut = audioCtx.createOscillator();
+                const gainOut = audioCtx.createGain();
+
+                oscOut.type = 'sine';
+                oscOut.frequency.setValueAtTime(320, now + 2.2);
+                oscOut.frequency.exponentialRampToValueAtTime(220, now + 3.7);
+
+                gainOut.gain.setValueAtTime(0, now + 2.2);
+                gainOut.gain.linearRampToValueAtTime(0.02, now + 2.5);
+                gainOut.gain.linearRampToValueAtTime(0, now + 3.7);
+
+                oscOut.connect(gainOut);
+                gainOut.connect(audioCtx.destination);
+
+                oscOut.start(now + 2.2);
+                oscOut.stop(now + 3.7);
+
+                activeSnoreNodes.push(oscOut, gainOut);
+
+                // Clean up nodes after they finish playing
+                setTimeout(() => {
+                    activeSnoreNodes = activeSnoreNodes.filter(node => node !== oscIn && node !== gainIn && node !== oscOut && node !== gainOut);
+                }, 4000);
+
+            } catch (e) {
+                console.warn('Erro ao reproduzir som de ronco:', e);
+            }
+        };
+
+        playSnoreCycle();
+        snoreInterval = setInterval(playSnoreCycle, 4500); // 4.5 seconds repeat cycle
+    }
+
+    function stopSnoring() {
+        if (snoreInterval) {
+            clearInterval(snoreInterval);
+            snoreInterval = null;
+        }
+        activeSnoreNodes.forEach(node => {
+            try {
+                if (typeof node.stop === 'function') {
+                    node.stop();
+                } else if (typeof node.disconnect === 'function') {
+                    node.disconnect();
+                }
+            } catch (e) {
+                // Node already stopped
+            }
+        });
+        activeSnoreNodes = [];
     }
 
     // JS-based yawn mouth animation (cross-browser)
