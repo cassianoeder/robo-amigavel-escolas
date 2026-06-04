@@ -44,7 +44,10 @@ const Speech = (() => {
         };
 
         recognition.onerror = (event) => {
-            console.warn('Erro no reconhecimento de voz:', event.error);
+            // Ignore no-speech silently, it's normal behavior when silent
+            if (event.error !== 'no-speech') {
+                console.warn('Erro no reconhecimento de voz:', event.error);
+            }
             if (event.error === 'not-allowed') {
                 console.error('Permissão de microfone negada.');
                 return;
