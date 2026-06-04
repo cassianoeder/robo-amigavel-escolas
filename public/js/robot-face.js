@@ -45,6 +45,7 @@ const RobotFace = (() => {
     let blinkInterval = null;
     let speakingInterval = null;
     let sleepyInterval = null;
+    let idleLookInterval = null;
 
     // Natural blink
     function startBlinking() {
@@ -77,8 +78,7 @@ const RobotFace = (() => {
         }
     }
 
-    // Move eyes to direction (dx: -1 to 1, dy: -1 to 1)
-    function lookAt(dx, dy) {
+    function applyEyeTransform(dx, dy) {
         const maxOffsetX = 22;
         const maxOffsetY = 15;
 
@@ -98,6 +98,39 @@ const RobotFace = (() => {
         });
     }
 
+    // Move eyes to direction (dx: -1 to 1, dy: -1 to 1)
+    function lookAt(dx, dy) {
+        stopIdleLook();
+        applyEyeTransform(dx, dy);
+    }
+
+    function startIdleLook() {
+        if (idleLookInterval || currentState === 'sleepy') return;
+        
+        const doIdleLook = () => {
+            if (currentState === 'sleepy' || currentState === 'speaking') return;
+            
+            // Random direction, smaller movements for idle
+            const dx = (Math.random() * 2 - 1) * 0.4; 
+            const dy = (Math.random() * 2 - 1) * 0.4; 
+            
+            applyEyeTransform(dx, dy);
+
+            // Schedule next look (between 1.5s and 4.5s)
+            const delay = 1500 + Math.random() * 3000;
+            idleLookInterval = setTimeout(doIdleLook, delay);
+        };
+        
+        doIdleLook();
+    }
+
+    function stopIdleLook() {
+        if (idleLookInterval) {
+            clearTimeout(idleLookInterval);
+            idleLookInterval = null;
+        }
+    }
+
     // Reset eye position
     function lookCenter() {
         lookAt(0, 0);
@@ -113,9 +146,10 @@ const RobotFace = (() => {
         currentState = 'idle';
         stopSpeaking();
         stopSleepy();
+        stopIdleLook();
 
-        leftEye.className = 'eye';
-        rightEye.className = 'eye';
+        leftEye.setAttribute('class', 'eye');
+        rightEye.setAttribute('class', 'eye');
         mouth.classList.remove('yawning', 'speaking');
         questionMarks.classList.remove('visible');
         questionMarks.classList.add('hidden');
@@ -130,9 +164,10 @@ const RobotFace = (() => {
         currentState = 'listening';
         stopSpeaking();
         stopSleepy();
+        stopIdleLook();
 
-        leftEye.className = 'eye';
-        rightEye.className = 'eye';
+        leftEye.setAttribute('class', 'eye');
+        rightEye.setAttribute('class', 'eye');
         mouth.classList.remove('yawning', 'speaking');
         questionMarks.classList.remove('visible');
         questionMarks.classList.add('hidden');
@@ -146,9 +181,10 @@ const RobotFace = (() => {
         currentState = 'thinking';
         stopSpeaking();
         stopSleepy();
+        stopIdleLook();
 
-        leftEye.className = 'eye';
-        rightEye.className = 'eye';
+        leftEye.setAttribute('class', 'eye');
+        rightEye.setAttribute('class', 'eye');
         mouth.classList.remove('yawning', 'speaking');
 
         setMouth(mouthPaths.thinking);
@@ -164,9 +200,10 @@ const RobotFace = (() => {
     function setSpeaking() {
         currentState = 'speaking';
         stopSleepy();
+        stopIdleLook();
 
-        leftEye.className = 'eye';
-        rightEye.className = 'eye';
+        leftEye.setAttribute('class', 'eye');
+        rightEye.setAttribute('class', 'eye');
         questionMarks.classList.remove('visible');
         questionMarks.classList.add('hidden');
         mouth.classList.remove('yawning');
@@ -208,8 +245,8 @@ const RobotFace = (() => {
         mouth.classList.remove('speaking');
 
         // Half-closed eyes
-        leftEye.className = 'eye sleepy';
-        rightEye.className = 'eye sleepy';
+        leftEye.setAttribute('class', 'eye sleepy');
+        rightEye.setAttribute('class', 'eye sleepy');
         setMouth(mouthPaths.sleepy);
         lookCenter();
 
@@ -220,26 +257,26 @@ const RobotFace = (() => {
             cycle++;
             if (cycle % 4 === 0) {
                 // Yawn: close eyes fully, animate mouth open/close via JS
-                leftEye.className = 'eye closed';
-                rightEye.className = 'eye closed';
+                leftEye.setAttribute('class', 'eye closed');
+                rightEye.setAttribute('class', 'eye closed');
                 doYawnMouth();
 
                 setTimeout(() => {
                     if (currentState === 'sleepy') {
-                        leftEye.className = 'eye sleepy';
-                        rightEye.className = 'eye sleepy';
+                        leftEye.setAttribute('class', 'eye sleepy');
+                        rightEye.setAttribute('class', 'eye sleepy');
                         setMouth(mouthPaths.sleepy);
                     }
                 }, 3000);
             } else if (cycle % 2 === 0) {
                 // Peek: open eyes slightly more then close again
-                leftEye.className = 'eye sleepy-peek';
-                rightEye.className = 'eye sleepy-peek';
+                leftEye.setAttribute('class', 'eye sleepy-peek');
+                rightEye.setAttribute('class', 'eye sleepy-peek');
 
                 setTimeout(() => {
                     if (currentState === 'sleepy') {
-                        leftEye.className = 'eye sleepy';
-                        rightEye.className = 'eye sleepy';
+                        leftEye.setAttribute('class', 'eye sleepy');
+                        rightEye.setAttribute('class', 'eye sleepy');
                     }
                 }, 2000);
             }
@@ -276,8 +313,8 @@ const RobotFace = (() => {
         if (currentState !== 'sleepy') return;
         stopSleepy();
 
-        leftEye.className = 'eye';
-        rightEye.className = 'eye';
+        leftEye.setAttribute('class', 'eye');
+        rightEye.setAttribute('class', 'eye');
 
         setIdle();
     }
@@ -292,6 +329,8 @@ const RobotFace = (() => {
         wakeUp,
         lookAt,
         lookCenter,
+        startIdleLook,
+        stopIdleLook,
         get state() { return currentState; },
         init() {
             setIdle();

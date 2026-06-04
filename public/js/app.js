@@ -16,6 +16,7 @@ const App = (() => {
     let lastVoiceActivityTime = Date.now();
     let motionSentThisCycle = false; // Prevent spamming motion webhooks
     let isManuallyMuted = false; // Tracks if the user clicked to mute the mic
+    let idleLookDelayTimer = null;
 
     // ===== State Management =====
 
@@ -70,6 +71,11 @@ const App = (() => {
     // ===== Motion Detection Handling =====
 
     function handleMotion(direction) {
+        if (idleLookDelayTimer) {
+            clearTimeout(idleLookDelayTimer);
+            idleLookDelayTimer = null;
+        }
+
         // Move eyes toward motion direction
         RobotFace.lookAt(direction.dx * 0.8, direction.dy * 0.5);
 
@@ -90,6 +96,8 @@ const App = (() => {
                 }
             }
         } else {
+            // Keep the robot awake while there's continuous motion
+            lastActivityTime = Date.now();
             motionSustainedStart = null;
         }
 
@@ -103,9 +111,13 @@ const App = (() => {
 
     function handleNoMotion() {
         motionSustainedStart = null;
-        // Slowly return eyes to center
+        
         if (!isProcessing && !isSleepy) {
-            RobotFace.lookCenter();
+            if (!idleLookDelayTimer) {
+                idleLookDelayTimer = setTimeout(() => {
+                    RobotFace.startIdleLook();
+                }, 1500); // start looking around after 1.5s of no motion
+            }
         }
     }
 
