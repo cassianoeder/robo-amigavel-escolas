@@ -107,14 +107,30 @@ const Speech = (() => {
         startListening();
     }
 
-    // ===== TTS (Text-to-Speech) =====
+    // Clean text before sending to SpeechSynthesis to prevent reading markdown symbols or emojis weirdly
+    function cleanTextForTTS(text) {
+        if (typeof text !== 'string') return '';
+        // 1. Remove emojis using Unicode Property Escapes (supported in modern browsers)
+        let cleaned = text.replace(/\p{Extended_Pictographic}/gu, '');
+        // 2. Remove markdown formatting characters: #, *, _, ~, `
+        cleaned = cleaned.replace(/[#*_~`]/g, '');
+        // 3. Replace newlines with periods so the TTS pauses naturally between paragraphs/lines
+        cleaned = cleaned.replace(/\n+/g, ' . ');
+        // 4. Normalize multiple spaces
+        cleaned = cleaned.replace(/\s+/g, ' ').trim();
+        return cleaned;
+    }
 
     function speak(text, voiceIndex = 0, rate = 1.0) {
         return new Promise((resolve) => {
             // Cancel any ongoing speech
             synth.cancel();
 
-            const utterance = new SpeechSynthesisUtterance(text);
+            const cleanedText = cleanTextForTTS(text);
+            console.log('[Robô TTS] Original:', text);
+            console.log('[Robô TTS] Limpo:', cleanedText);
+
+            const utterance = new SpeechSynthesisUtterance(cleanedText);
             utterance.lang = 'pt-BR';
             utterance.rate = rate;
             utterance.pitch = 1.0;
