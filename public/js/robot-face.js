@@ -245,24 +245,28 @@ const RobotFace = (() => {
             if (heartsContainer) {
                 // Spawn a heart every 300ms
                 heartInterval = setInterval(() => {
+                    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
                     const heart = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    
                     // Simple SVG heart path
                     heart.setAttribute('d', 'M 10 30 A 20 20 0 0 1 50 30 A 20 20 0 0 1 90 30 Q 90 60 50 90 Q 10 60 10 30 Z');
                     heart.setAttribute('fill', '#ff4b4b');
                     heart.setAttribute('class', 'floating-heart');
+                    heart.style.transformOrigin = "50px 50px";
                     
-                    // Randomize position and scale
+                    // Randomize position
                     const randomX = 150 + Math.random() * 500;
                     const randomY = 300 + Math.random() * 100;
-                    // Note: transform applies to origin, we set initial pos via style or transform
-                    heart.style.transformOrigin = "50px 50px";
-                    heart.style.transform = `translate(${randomX}px, ${randomY}px) scale(${0.3 + Math.random() * 0.3})`;
                     
-                    heartsContainer.appendChild(heart);
+                    // Set position on the wrapper group so CSS animation on the heart doesn't overwrite it
+                    g.setAttribute('transform', `translate(${randomX}, ${randomY})`);
+                    
+                    g.appendChild(heart);
+                    heartsContainer.appendChild(g);
 
                     // Remove after animation completes
                     setTimeout(() => {
-                        if (heart.parentNode) heart.parentNode.removeChild(heart);
+                        if (g.parentNode) g.parentNode.removeChild(g);
                     }, 2000);
 
                 }, 400);
