@@ -13,7 +13,8 @@ const Config = (() => {
         vozIndex: 0,
         velocidadeFala: 1.0,
         timeoutSonolencia: 40,
-        sessaoId: ''
+        sessaoId: '',
+        isKidsMode: false
     };
 
     // Generate UUID v4
@@ -68,6 +69,7 @@ const Config = (() => {
     const rateValue = document.getElementById('rate-value');
     const sleepSelect = document.getElementById('cfg-sleep');
     const settingsBtn = document.getElementById('btn-settings');
+    const kidsBtn = document.getElementById('btn-kids-mode');
 
     // Populate form with current config
     function populateForm() {
@@ -190,6 +192,19 @@ const Config = (() => {
         init() {
             populateForm();
             loadVoices();
+
+            // Set up Kids Mode button state and event listener
+            if (kidsBtn) {
+                kidsBtn.classList.toggle('active', !!current.isKidsMode);
+                kidsBtn.addEventListener('click', () => {
+                    current.isKidsMode = !current.isKidsMode;
+                    kidsBtn.classList.toggle('active', current.isKidsMode);
+                    save(current);
+                    if (onConfigReady) {
+                        onConfigReady(current);
+                    }
+                });
+            }
 
             // If already configured, auto-close modal and notify
             if (current.webhookUrl) {

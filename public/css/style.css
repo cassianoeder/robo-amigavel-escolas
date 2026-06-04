@@ -313,30 +313,61 @@ body {
     color: #1A1A2E;
 }
 
-/* Settings gear button */
-.settings-btn {
+/* ===== TOP CONTROLS (Settings & Kids Mode) ===== */
+.top-controls {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 500;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 50%;
+    display: flex;
+    gap: 12px;
+}
+
+.control-btn {
     width: 48px;
     height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: rotate(15deg) scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.kids-btn {
+    font-size: 24px;
+    /* Reset rotation on hover since emoji shouldn't spin like the gear */
+}
+
+.kids-btn:hover {
+    transform: scale(1.1);
+}
+
+.kids-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* Settings gear button */
+.settings-btn {
     color: var(--text-muted);
-    transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
-    backdrop-filter: blur(8px);
 }
 
 .settings-btn:hover {
     color: var(--text-primary);
-    background: rgba(255,255,255,0.1);
-    transform: rotate(30deg);
 }
 
 /* ============================================

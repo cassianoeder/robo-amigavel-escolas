@@ -64,7 +64,8 @@ const Webhook = (() => {
         const body = {
             sessao_id: config.sessaoId,
             tipo: 'fala',
-            mensagem: mensagem
+            mensagem: mensagem,
+            modo: config.isKidsMode ? 'kids' : 'normal'
         };
         return enviar(config.webhookUrl, body, config.jwtToken);
     }
@@ -75,7 +76,8 @@ const Webhook = (() => {
     async function enviarMovimento(config) {
         const body = {
             sessao_id: config.sessaoId,
-            tipo: 'movimento detectado'
+            tipo: 'movimento detectado',
+            modo: config.isKidsMode ? 'kids' : 'normal'
         };
         return enviar(config.webhookUrl, body, config.jwtToken);
     }
