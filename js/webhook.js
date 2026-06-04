@@ -21,10 +21,17 @@ const Webhook = (() => {
         }
 
         try {
-            const response = await fetch(url, {
+            // Usa o proxy local (Vercel Serverless Function) para evitar erros de CORS
+            const response = await fetch('/api/webhook', {
                 method: 'POST',
-                headers,
-                body: JSON.stringify(body)
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    targetUrl: url,
+                    token: token,
+                    payload: body
+                })
             });
 
             if (!response.ok) {
