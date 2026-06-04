@@ -335,6 +335,18 @@ const App = (() => {
         resetInactivityTimer();
         lastActivityTime = Date.now();
         lastVoiceActivityTime = Date.now();
+
+        // MOBILE: If TTS wasn't unlocked yet (auto-start, no form tap),
+        // listen for the FIRST user interaction to unlock it
+        if (Speech.isMobile) {
+            const unlockOnTouch = () => {
+                Speech.unlockTTS();
+                document.removeEventListener('touchstart', unlockOnTouch);
+                document.removeEventListener('click', unlockOnTouch);
+            };
+            document.addEventListener('touchstart', unlockOnTouch, { once: true });
+            document.addEventListener('click', unlockOnTouch, { once: true });
+        }
     }
 
     // ===== Config ready handler =====

@@ -3,6 +3,11 @@
    ============================================ */
 
 const Speech = (() => {
+    // Mobile detection
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    let ttsUnlocked = false;
+
     // Speech Recognition (STT)
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
@@ -11,6 +16,7 @@ const Speech = (() => {
 
     // Speech Synthesis (TTS)
     const synth = window.speechSynthesis;
+    let ttsKeepAliveTimer = null;
 
     // Callbacks
     let onTranscript = null;     // (text) => void
@@ -28,7 +34,9 @@ const Speech = (() => {
         }
 
         recognition = new SpeechRecognition();
-        recognition.continuous = true;
+        // Android breaks with continuous=true (stops silently after each phrase)
+        // Use false on mobile and rely on auto-restart via onend
+        recognition.continuous = !isMobile;
         recognition.interimResults = false;
         recognition.lang = 'pt-BR';
         recognition.maxAlternatives = 1;
@@ -154,6 +162,37 @@ const Speech = (() => {
         return null;
     }
 
+    // Unlock TTS on mobile — MUST be called inside a user gesture (click/tap)
+    function unlockTTS() {
+        if (ttsUnlocked) return;
+        console.log('[Robô TTS] Desbloqueando síntese de voz (user gesture)...');
+        const dummy = new SpeechSynthesisUtterance('');
+        dummy.volume = 0;
+        dummy.lang = 'pt-BR';
+        synth.speak(dummy);
+        ttsUnlocked = true;
+    }
+
+    // Chrome Android bug: utterances >~15s are silently cancelled.
+    // Workaround: periodically pause+resume to keep the engine alive.
+    function startTTSKeepAlive() {
+        stopTTSKeepAlive();
+        if (!isAndroid) return;
+        ttsKeepAliveTimer = setInterval(() => {
+            if (synth.speaking && !synth.paused) {
+                synth.pause();
+                synth.resume();
+            }
+        }, 10000); // every 10s
+    }
+
+    function stopTTSKeepAlive() {
+        if (ttsKeepAliveTimer) {
+            clearInterval(ttsKeepAliveTimer);
+            ttsKeepAliveTimer = null;
+        }
+    }
+
     function speak(text, voiceIndex = 0, rate = 1.0) {
         return new Promise((resolve) => {
             // Cancel any ongoing speech
@@ -170,26 +209,45 @@ const Speech = (() => {
 
             // Set voice
             const voices = synth.getVoices();
-            if (voices[voiceIndex]) {
+            if (voices.length > 0 && voices[voiceIndex]) {
                 utterance.voice = voices[voiceIndex];
+            } else if (voices.length > 0) {
+                // Fallback: try to find any pt-BR voice
+                const ptVoice = voices.find(v => v.lang && v.lang.startsWith('pt'));
+                if (ptVoice) utterance.voice = ptVoice;
             }
 
             utterance.onstart = () => {
+                startTTSKeepAlive();
                 if (onSpeechStart) onSpeechStart();
             };
 
             utterance.onend = () => {
+                stopTTSKeepAlive();
                 if (onSpeechEnd) onSpeechEnd();
                 resolve();
             };
 
             utterance.onerror = (e) => {
+                stopTTSKeepAlive();
                 console.warn('Erro na síntese de voz:', e);
                 if (onSpeechEnd) onSpeechEnd();
                 resolve();
             };
 
             synth.speak(utterance);
+
+            // Android safety net: if onstart never fires after 3s, the utterance was silently blocked
+            if (isMobile) {
+                setTimeout(() => {
+                    if (!synth.speaking) {
+                        console.warn('[Robô TTS] Utterance bloqueada pelo navegador mobile.');
+                        stopTTSKeepAlive();
+                        if (onSpeechEnd) onSpeechEnd();
+                        resolve();
+                    }
+                }, 3000);
+            }
         });
     }
 
@@ -305,10 +363,12 @@ const Speech = (() => {
         cancelSpeech,
         requestMicPermission,
         startVolumeAnalysis,
+        unlockTTS,
 
         // Expose the AudioContext so other modules can reuse it
         // (avoids browsers blocking audio created outside user gesture)
         getAudioContext() { return audioContext; },
+        get isMobile() { return isMobile; },
 
         // Callbacks
         onTranscript(cb) { onTranscript = cb; },

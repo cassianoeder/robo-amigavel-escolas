@@ -169,6 +169,13 @@ const Config = (() => {
 
         save(current);
         document.body.setAttribute('data-theme', current.corDestaque);
+
+        // CRITICAL FOR MOBILE: Unlock TTS inside user gesture (tap/click)
+        // Android Chrome blocks speechSynthesis.speak() unless triggered from user gesture
+        if (typeof Speech !== 'undefined' && Speech.unlockTTS) {
+            Speech.unlockTTS();
+        }
+
         closeModal();
 
         if (onConfigReady) {
