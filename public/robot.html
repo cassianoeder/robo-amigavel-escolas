@@ -152,13 +152,27 @@
             </svg>
         </div>
 
-        <!-- Microphone indicator -->
-        <div id="mic-indicator" class="mic-indicator">
-            <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-            </svg>
-            <span class="mic-label" id="mic-label">Ouvindo...</span>
+        <!-- Bottom controls: Mic and Noise indicators -->
+        <div class="bottom-controls">
+            <!-- Microphone indicator -->
+            <div id="mic-indicator" class="mic-indicator">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+                <span class="mic-label" id="mic-label">Ouvindo...</span>
+            </div>
+
+            <!-- Noise warning indicator (Option 3: Ear + Noise waves) -->
+            <div id="noise-warning" class="noise-warning hidden" title="Ambiente muito barulhento. Fale de perto do robô!">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0" />
+                    <path d="M15 8.5a2.5 2.5 0 0 0-5 0v1.2" />
+                    <path d="M3 9.5a4 4 0 0 1 0 5" class="noise-wave" />
+                    <path d="M1 7a7 7 0 0 1 0 10" class="noise-wave" />
+                </svg>
+                <span>Ruído Alto</span>
+            </div>
         </div>
     </main>
 

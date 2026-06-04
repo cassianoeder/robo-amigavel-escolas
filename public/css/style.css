@@ -595,13 +595,20 @@ body {
 }
 
 /* ============================================
-   MICROPHONE INDICATOR
+   MICROPHONE & NOISE INDICATORS
    ============================================ */
-.mic-indicator {
+.bottom-controls {
     position: fixed;
     bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+}
+
+.mic-indicator {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -611,13 +618,12 @@ body {
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.08);
     transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
-    z-index: 100;
     cursor: pointer;
 }
 
 .mic-indicator:hover {
     background: rgba(0,0,0,0.7);
-    transform: translateX(-50%) scale(1.05);
+    transform: scale(1.05);
 }
 
 .mic-indicator.listening {
@@ -641,6 +647,64 @@ body {
     font-size: 0.85rem;
     font-weight: 500;
     letter-spacing: 0.02em;
+}
+
+/* Noise Warning Indicator (Option 3) */
+.noise-warning {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 50px;
+    background: rgba(255, 107, 53, 0.15);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    color: #FF6B35;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    animation: noisePulse 2s infinite alternate;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+@keyframes noisePulse {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 107, 53, 0.15);
+        transform: scale(1);
+    }
+    100% {
+        box-shadow: 0 0 22px rgba(255, 107, 53, 0.35);
+        transform: scale(1.02);
+    }
+}
+
+.noise-warning.hidden {
+    display: none !important;
+}
+
+.noise-wave {
+    animation: noiseWaveAnim 1.2s infinite ease-in-out;
+    transform-origin: left center;
+}
+
+.noise-wave:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.noise-wave:nth-child(4) {
+    animation-delay: 0.5s;
+}
+
+@keyframes noiseWaveAnim {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(0.9);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
 }
 
 /* ============================================

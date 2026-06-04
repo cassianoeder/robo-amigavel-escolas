@@ -167,6 +167,8 @@ const Speech = (() => {
     let microphone = null;
     let javascriptNode = null;
     let onLoudSoundCallback = null;
+    let onNoiseLevelChangeCallback = null;
+    let noiseSamples = [];
 
     async function startVolumeAnalysis(onLoudSound) {
         onLoudSoundCallback = onLoudSound;
@@ -207,6 +209,29 @@ const Speech = (() => {
                         if (onLoudSoundCallback) onLoudSoundCallback();
                     }
                 }
+
+                // Ambient Noise Analysis
+                // If synthesizer is speaking or microphone disabled/inactive, clear samples to avoid self-pickup
+                if (synth.speaking || !micEnabled || !isListening) {
+                    if (noiseSamples.length > 0) {
+                        noiseSamples = [];
+                        if (onNoiseLevelChangeCallback) onNoiseLevelChangeCallback(false, 0);
+                    }
+                    return;
+                }
+
+                noiseSamples.push(average);
+                if (noiseSamples.length > 40) { // ~2 seconds of history
+                    noiseSamples.shift();
+                }
+
+                const rollingAvg = noiseSamples.reduce((a, b) => a + b, 0) / noiseSamples.length;
+                // Threshold 38 indicates constant background noise (loud environment)
+                const isNoisy = rollingAvg > 38 && noiseSamples.length >= 40;
+
+                if (onNoiseLevelChangeCallback) {
+                    onNoiseLevelChangeCallback(isNoisy, rollingAvg);
+                }
             };
         } catch (e) {
             console.warn('Erro ao iniciar análise de volume do microfone:', e);
@@ -237,6 +262,7 @@ const Speech = (() => {
         onSpeechStart(cb) { onSpeechStart = cb; },
         onSpeechEnd(cb) { onSpeechEnd = cb; },
         onListeningStart(cb) { onListeningStart = cb; },
-        onListeningStop(cb) { onListeningStop = cb; }
+        onListeningStop(cb) { onListeningStop = cb; },
+        onNoiseLevelChange(cb) { onNoiseLevelChangeCallback = cb; }
     };
 })();

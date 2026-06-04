@@ -237,6 +237,18 @@ const App = (() => {
             }
         });
 
+        // Show/hide noise warning based on ambient loudness
+        Speech.onNoiseLevelChange((isNoisy) => {
+            const noiseWarning = document.getElementById('noise-warning');
+            if (noiseWarning) {
+                if (isNoisy && !isProcessing && !isSleepy) {
+                    noiseWarning.classList.remove('hidden');
+                } else {
+                    noiseWarning.classList.add('hidden');
+                }
+            }
+        });
+
         // Click to Mute Feature
         micIndicator.addEventListener('click', () => {
             if (!config || isProcessing) return; // Wait until ready or idle
