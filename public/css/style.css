@@ -930,3 +930,21 @@ body {
     100% { transform: translateY(-150px) scale(0.5); opacity: 0; }
 }
 
+/* App Footer Styling */
+.app-footer {
+    position: fixed;
+    bottom: 15px;
+    right: 20px;
+    z-index: 50;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: var(--font-family);
+    pointer-events: none;
+    opacity: 0.6;
+    transition: opacity var(--transition-fast);
+}
+
+.app-footer:hover {
+    opacity: 1;
+}
+
