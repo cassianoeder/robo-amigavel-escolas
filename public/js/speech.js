@@ -233,7 +233,8 @@ const Speech = (() => {
             utterance.rate = rate;
             utterance.pitch = 1.0;
 
-            // Set voice
+            utterance.volume = (Config && Config.current && Config.current.volumeRobo !== undefined ? Config.current.volumeRobo : 100) / 100;
+// Set voice
             const voices = synth.getVoices();
             if (voices.length > 0 && voices[voiceIndex]) {
                 utterance.voice = voices[voiceIndex];

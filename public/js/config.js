@@ -15,7 +15,8 @@ const Config = (() => {
         timeoutSonolencia: 40,
         sessaoId: '',
         isKidsMode: false,
-        topicDia: ''
+        topicDia: '',
+        volumeRobo: 100 // Volume (0-130) percentage, default 100
     };
 
     // Generate UUID v4
@@ -69,6 +70,8 @@ const Config = (() => {
     const rateSlider = document.getElementById('cfg-rate');
     const rateValue = document.getElementById('rate-value');
     const sleepSelect = document.getElementById('cfg-sleep');
+    const volumeSlider = document.getElementById('cfg-volume');
+    const volumeValue = document.getElementById('volume-value');
     const settingsBtn = document.getElementById('btn-settings');
     const kidsBtn = document.getElementById('btn-kids-mode');
     const topicBtn = document.getElementById('btn-daily-topic');
@@ -85,6 +88,8 @@ const Config = (() => {
         rateSlider.value = current.velocidadeFala;
         rateValue.textContent = current.velocidadeFala.toFixed(1);
         sleepSelect.value = current.timeoutSonolencia;
+        volumeSlider.value = current.volumeRobo;
+        volumeValue.textContent = current.volumeRobo;
         // Update topic indicator visibility based on stored topic
         if (topicIndicator) {
             topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
@@ -130,6 +135,11 @@ const Config = (() => {
     // Rate slider
     rateSlider.addEventListener('input', () => {
         rateValue.textContent = parseFloat(rateSlider.value).toFixed(1);
+    });
+
+    // Volume slider
+    volumeSlider.addEventListener('input', () => {
+        volumeValue.textContent = parseInt(volumeSlider.value);
     });
 
     // Open modal
@@ -189,6 +199,7 @@ const Config = (() => {
         current.vozIndex = parseInt(voiceSelect.value) || 0;
         current.velocidadeFala = parseFloat(rateSlider.value) || 1.0;
         current.timeoutSonolencia = parseInt(sleepSelect.value) || 40;
+        current.volumeRobo = parseInt(volumeSlider.value) || 100;
 
         // Ensure session ID
         if (!current.sessaoId) {
