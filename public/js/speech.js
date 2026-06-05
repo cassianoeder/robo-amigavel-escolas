@@ -49,20 +49,26 @@ const Speech = (() => {
             if (lastResult.isFinal) {
                 const transcript = lastResult[0].transcript.trim();
                 if (transcript && onTranscript) {
-                    const rollingAvg = noiseSamples.length > 0
-                        ? noiseSamples.reduce((a, b) => a + b, 0) / noiseSamples.length
-                        : 0;
-
-                    // Gating threshold logic:
-                    // If rolling average (ambient noise floor) is moderate/high, we require the user's voice to be louder than the floor.
-                    let minRequiredVolume = 0;
-                    const isNoisy = rollingAvg > 30; // 30 is moderate noise
-
-                    if (isNoisy) {
-                        minRequiredVolume = rollingAvg + 12; // Must be 12 units louder than the noise floor
+                    // Noise floor via 25th-percentile — voice peaks don't inflate the baseline
+                    let noiseFloor = 0;
+                    if (noiseSamples.length >= 8) {
+                        const sorted = [...noiseSamples].sort((a, b) => a - b);
+                        noiseFloor = sorted[Math.floor(sorted.length * 0.25)];
                     }
 
-                    console.log(`[Voz Gate] Max Volume = ${currentSpeechMaxVolume.toFixed(1)}, Piso de Ruído = ${rollingAvg.toFixed(1)}, Mínimo Requerido = ${minRequiredVolume.toFixed(1)}`);
+                    // Gating threshold logic:
+                    // Use ratio-based threshold so it scales with ambient noise.
+                    // Safety valve: very loud peaks (>55) always pass — someone is
+                    // clearly speaking close to the microphone.
+                    let minRequiredVolume = 0;
+                    const isNoisy = noiseFloor > 25;
+
+                    if (isNoisy && currentSpeechMaxVolume <= 55) {
+                        // Voice must be 30% louder than the ambient noise floor
+                        minRequiredVolume = noiseFloor * 1.3;
+                    }
+
+                    console.log(`[Voz Gate] Max Volume = ${currentSpeechMaxVolume.toFixed(1)}, Piso (P25) = ${noiseFloor.toFixed(1)}, Mínimo Requerido = ${minRequiredVolume.toFixed(1)}`);
 
                     if (currentSpeechMaxVolume >= minRequiredVolume) {
                         onTranscript(transcript);
@@ -361,16 +367,18 @@ const Speech = (() => {
                 }
 
                 noiseSamples.push(average);
-                if (noiseSamples.length > 40) { // ~2 seconds of history
+                if (noiseSamples.length > 50) { // ~2.5 seconds of history
                     noiseSamples.shift();
                 }
 
-                const rollingAvg = noiseSamples.reduce((a, b) => a + b, 0) / noiseSamples.length;
-                // Threshold 38 indicates constant background noise (loud environment)
-                const isNoisy = rollingAvg > 38 && noiseSamples.length >= 40;
+                // Use 25th-percentile as noise floor (consistent with gating logic)
+                const sorted = [...noiseSamples].sort((a, b) => a - b);
+                const noiseFloor = sorted[Math.floor(sorted.length * 0.25)];
+                // Threshold 30 indicates constant background noise (loud environment)
+                const isNoisy = noiseFloor > 30 && noiseSamples.length >= 40;
 
                 if (onNoiseLevelChangeCallback) {
-                    onNoiseLevelChangeCallback(isNoisy, rollingAvg);
+                    onNoiseLevelChangeCallback(isNoisy, noiseFloor);
                 }
             };
         } catch (e) {
