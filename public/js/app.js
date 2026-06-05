@@ -230,8 +230,20 @@ const App = (() => {
             console.warn('Câmera não disponível. Detecção de movimento desativada.');
         }
 
-        // Initialize speech recognition
-        Speech.init();
+        // Initialize speech recognition (wait for it to complete)
+        const sttOk = await Speech.init();
+        if (!sttOk) {
+            const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+            if (isFirefox) {
+                console.warn('[Robô] STT não inicializou. Configure o motor "Vosk Beta" no modal de configurações para usar no Firefox.');
+                alert('Reconhecimento de voz não disponível. No Firefox, abra as Configurações ⚙️ e selecione "Vosk Beta (Offline)" como motor de reconhecimento.');
+            } else {
+                console.warn('[Robô] STT não inicializou neste navegador.');
+                alert('Reconhecimento de voz não disponível neste navegador. Tente Chrome, Edge ou selecione "Vosk Beta" nas configurações.');
+            }
+        } else {
+            console.log('[Robô] STT inicializado com sucesso. Engine:', Speech.activeEngine);
+        }
 
         // Set up callbacks
         Speech.onTranscript(handleTranscript);
@@ -304,9 +316,11 @@ const App = (() => {
         Motion.onMotionDetected(handleMotion);
         Motion.onNoMotion(handleNoMotion);
 
-        // Start systems
+        // Start systems (only if STT initialized successfully)
         RobotFace.init();
-        Speech.startListening();
+        if (sttOk) {
+            Speech.startListening();
+        }
         if (camOk) Motion.startDetection();
 
         // Start background microphone volume analysis for sound level reactions (shout/clap -> surprised)

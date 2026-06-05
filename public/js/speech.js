@@ -36,25 +36,30 @@ const Speech = (() => {
         const hasNative = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
         const hasVosk = !!(window.VoskSTT);
 
-        // If user explicitly chose Vosk and it's available
+        // If user explicitly chose Vosk
         if (configured === 'vosk') {
             if (hasVosk) {
-                console.log('[STT] Engine selecionado: Vosk (offline)');
+                console.log('[STT] Engine selecionado pelo usuário: Vosk (offline)');
                 return 'vosk';
             }
-            console.warn('[STT] Vosk solicitado mas não disponível. Usando nativo.');
-            return 'native';
+            console.warn('[STT] Vosk solicitado mas VoskSTT não carregado.');
+            // If native works, use it; otherwise try Vosk anyway (maybe it can still load)
+            if (hasNative) {
+                console.log('[STT] Fallback para Web Speech API (Vosk indisponível).');
+                return 'native';
+            }
+            return 'vosk';
         }
 
         // Default: try native first
         if (hasNative) {
-            console.log('[STT] Engine selecionado: Web Speech API (nativo)');
+            console.log('[STT] Engine: Web Speech API (nativo)');
             return 'native';
         }
 
-        // Fallback: use Vosk if native not available
+        // Native not available (Firefox, Android browser) - auto fallback to Vosk
         if (hasVosk) {
-            console.log('[STT] Web Speech API indisponível. Usando Vosk como fallback.');
+            console.log('[STT] Web Speech API indisponível. Usando Vosk automaticamente como fallback.');
             return 'vosk';
         }
 
@@ -69,39 +74,65 @@ const Speech = (() => {
     async function init() {
         activeEngine = detectSTTEngine();
 
+        // If user chose Vosk explicitly
         if (activeEngine === 'vosk') {
-            // Initialize Vosk engine
-            if (window.VoskSTT && !voskInitialized) {
-                try {
-                    // Wire Vosk callbacks to local callbacks
-                    window.VoskSTT.onTranscript((text) => {
-                        // Apply same gating logic as native
-                        if (text && onTranscript) {
-                            onTranscript(text);
-                        }
-                    });
-                    window.VoskSTT.onError((err) => {
-                        console.warn('[Vosk] Erro:', err);
-                    });
-
-                    await window.VoskSTT.init();
-                    voskInitialized = true;
-                    console.log('[STT] Vosk inicializado com sucesso');
-                } catch (e) {
-                    console.error('[STT] Falha ao inicializar Vosk:', e);
-                    // Fallback: try native
-                    if (window.SpeechRecognition || window.webkitSpeechRecognition) {
-                        activeEngine = 'native';
-                        return initRecognition();
-                    }
-                    return false;
-                }
+            if (!window.VoskSTT) {
+                console.error('[STT] VoskSTT não carregado. Verifique se speech-vosk.js foi incluído.');
+                return false;
             }
-            return true;
+            if (voskInitialized) return true;
+
+            try {
+                // Wire Vosk callbacks to local callbacks
+                window.VoskSTT.onTranscript((text) => {
+                    if (text && onTranscript) {
+                        onTranscript(text);
+                    }
+                });
+                window.VoskSTT.onError((err) => {
+                    console.warn('[Vosk] Erro:', err);
+                });
+
+                await window.VoskSTT.init();
+                voskInitialized = true;
+                console.log('[STT] Vosk inicializado com sucesso');
+                return true;
+            } catch (e) {
+                console.error('[STT] Falha ao inicializar Vosk:', e);
+                return false;
+            }
         }
 
-        // Default: native Web Speech API
-        return initRecognition();
+        // Try native Web Speech API
+        if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+            return initRecognition();
+        }
+
+        // Native not available (Firefox/Safari) - try Vosk as fallback if loaded
+        if (window.VoskSTT) {
+            console.warn('[STT] Web Speech API indisponível neste navegador. Usando Vosk como fallback automático.');
+            activeEngine = 'vosk';
+            if (voskInitialized) return true;
+            try {
+                window.VoskSTT.onTranscript((text) => {
+                    if (text && onTranscript) {
+                        onTranscript(text);
+                    }
+                });
+                window.VoskSTT.onError((err) => {
+                    console.warn('[Vosk] Erro:', err);
+                });
+                await window.VoskSTT.init();
+                voskInitialized = true;
+                return true;
+            } catch (e) {
+                console.error('[STT] Falha ao inicializar Vosk como fallback:', e);
+                return false;
+            }
+        }
+
+        console.error('[STT] Nenhum motor de reconhecimento de voz disponível neste navegador!');
+        return false;
     }
 
     // ===== STT (Speech-to-Text) - Native Web Speech API =====

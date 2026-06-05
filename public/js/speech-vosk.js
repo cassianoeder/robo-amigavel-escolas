@@ -29,8 +29,10 @@ const VoskSTT = (() => {
     // ===== Model Loading =====
     // CDN URLs for the Vosk library and Portuguese model
     const VOSK_LIB_URL = 'https://cdn.jsdelivr.net/npm/vosk-browser@0.0.5/dist/vosk.js';
-    // Small Portuguese model (~50MB) hosted on jsdelivr
-    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/vosk-models@0.0.5/vosk-model-small-pt-0.3.tar.gz';
+    // Small Portuguese model (~31MB) hosted locally
+    const MODEL_URL = '/models/vosk-model-small-pt-0.3.tar.gz';
+    // Fallback URL if local model is not available
+    const MODEL_URL_FALLBACK = 'https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.tar.gz';
 
     // Load the Vosk WASM library dynamically
     async function loadVoskLibrary() {
@@ -80,36 +82,34 @@ const VoskSTT = (() => {
                 Vosk.setLogLevel(-1);
             }
 
-            // 3. Load the model (this may take a while - ~50MB download)
-            console.log('[Vosk] Baixando modelo de português (~50MB)...');
+            // 3. Load the model (this may take a while - ~31MB download)
+            console.log('[Vosk] Baixando modelo de português (~31MB)...');
             console.log('[Vosk] Esta operação pode demorar alguns minutos na primeira vez.');
 
-            // Create a wrapper to track download progress
-            const channel = new MessageChannel();
-            const progressCallback = (event) => {
-                if (event.data && event.data.type === 'progress' && event.data.data) {
-                    const { loaded, total } = event.data.data;
-                    if (total) {
-                        const percent = ((loaded / total) * 100).toFixed(1);
-                        console.log(`[Vosk] Download: ${percent}% (${(loaded / 1024 / 1024).toFixed(1)}MB / ${(total / 1024 / 1024).toFixed(1)}MB)`);
-                    }
-                }
-            };
-            channel.port1.onmessage = progressCallback;
-
-            // Try with progress callback first, fall back to simple
+            // Try local model first
+            let modelLoaded = false;
             try {
-                model = await Vosk.createModel(MODEL_URL, undefined, channel.port2);
-            } catch (e) {
-                console.warn('[Vosk] Falha com callback de progresso, tentando simples...');
+                console.log('[Vosk] Tentando carregar modelo local...');
                 model = await Vosk.createModel(MODEL_URL);
+                modelLoaded = true;
+                console.log('[Vosk] Modelo local carregado com sucesso');
+            } catch (e1) {
+                console.warn('[Vosk] Modelo local não disponível, tentando fonte externa...', e1.message);
+                try {
+                    console.log('[Vosk] Baixando de fonte externa (~31MB)...');
+                    model = await Vosk.createModel(MODEL_URL_FALLBACK);
+                    modelLoaded = true;
+                    console.log('[Vosk] Modelo externo carregado com sucesso');
+                } catch (e2) {
+                    console.error('[Vosk] Falha ao carregar modelo:', e2.message);
+                    throw e2;
+                }
             }
 
             console.log('[Vosk] Modelo carregado com sucesso');
 
             // 4. Create a recognizer
-            recognizer = new model.KaldiRecognizer(16000);
-            recognizer.setWords(true);
+            recognizer = new model.KaldiRecognizer();
             recognizer.on('result', (message) => {
                 const text = (message && message.result && message.result.text) || '';
                 if (text && text.trim().length > 0 && onTranscriptCallback) {
@@ -119,7 +119,6 @@ const VoskSTT = (() => {
             });
             recognizer.on('partialresult', (message) => {
                 const partial = (message && message.result && message.result.partial) || '';
-                // Partial results could be exposed in the future if needed
                 if (partial) {
                     console.log('[Vosk] Parcial:', partial);
                 }
