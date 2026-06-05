@@ -213,7 +213,7 @@ const App = (() => {
 
     function applyHatConfig(cfg) {
         const hat = document.getElementById('robot-hat');
-        const hatLogo = document.getElementById('hat-logo');
+        const hatLogoContainer = document.getElementById('hat-logo-container');
         
         if (!hat) return;
         
@@ -224,13 +224,20 @@ const App = (() => {
             // Apply hat color
             hat.style.setProperty('--hat-color', cfg.hatColor || '#333333');
             
-            // Apply logo
-            if (hatLogo && cfg.hatLogo) {
-                hatLogo.setAttribute('href', cfg.hatLogo);
-                hatLogo.classList.remove('hidden');
-            } else if (hatLogo) {
-                hatLogo.setAttribute('href', '');
-                hatLogo.classList.add('hidden');
+            // Apply logo - remove existing and recreate
+            if (hatLogoContainer) {
+                hatLogoContainer.innerHTML = '';
+                
+                if (cfg.hatLogo) {
+                    const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+                    image.setAttribute('id', 'hat-logo');
+                    image.setAttribute('href', cfg.hatLogo);
+                    image.setAttribute('x', '320');
+                    image.setAttribute('y', '65');
+                    image.setAttribute('width', '160');
+                    image.setAttribute('height', '40');
+                    hatLogoContainer.appendChild(image);
+                }
             }
         } else {
             hat.classList.add('hidden');
