@@ -25,6 +25,9 @@ const Speech = (() => {
     let onListeningStart = null; // () => void
     let onListeningStop = null;  // () => void
 
+    // Dynamic Volume Gating
+    let currentSpeechMaxVolume = 0;
+
     // ===== STT (Speech-to-Text) =====
 
     function initRecognition() {
@@ -46,7 +49,29 @@ const Speech = (() => {
             if (lastResult.isFinal) {
                 const transcript = lastResult[0].transcript.trim();
                 if (transcript && onTranscript) {
-                    onTranscript(transcript);
+                    const rollingAvg = noiseSamples.length > 0
+                        ? noiseSamples.reduce((a, b) => a + b, 0) / noiseSamples.length
+                        : 0;
+
+                    // Gating threshold logic:
+                    // If rolling average (ambient noise floor) is moderate/high, we require the user's voice to be louder than the floor.
+                    let minRequiredVolume = 0;
+                    const isNoisy = rollingAvg > 30; // 30 is moderate noise
+
+                    if (isNoisy) {
+                        minRequiredVolume = rollingAvg + 12; // Must be 12 units louder than the noise floor
+                    }
+
+                    console.log(`[Voz Gate] Max Volume = ${currentSpeechMaxVolume.toFixed(1)}, Piso de Ruído = ${rollingAvg.toFixed(1)}, Mínimo Requerido = ${minRequiredVolume.toFixed(1)}`);
+
+                    if (currentSpeechMaxVolume >= minRequiredVolume) {
+                        onTranscript(transcript);
+                    } else {
+                        console.warn(`[Voz Gate] Transcrição descartada (muito baixa, provável ruído de fundo): "${transcript}"`);
+                    }
+
+                    // Reset max volume for next utterance
+                    currentSpeechMaxVolume = 0;
                 }
             }
         };
@@ -76,6 +101,7 @@ const Speech = (() => {
 
         recognition.onstart = () => {
             isListening = true;
+            currentSpeechMaxVolume = 0; // Reset at start of listening cycle
             if (onListeningStart) onListeningStart();
         };
 
@@ -324,7 +350,13 @@ const Speech = (() => {
                         noiseSamples = [];
                         if (onNoiseLevelChangeCallback) onNoiseLevelChangeCallback(false, 0);
                     }
+                    currentSpeechMaxVolume = 0;
                     return;
+                }
+
+                // Track max volume during active listening
+                if (average > currentSpeechMaxVolume) {
+                    currentSpeechMaxVolume = average;
                 }
 
                 noiseSamples.push(average);
