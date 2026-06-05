@@ -240,6 +240,58 @@ const Config = (() => {
                     }
                 });
             }
+
+            // Set up Fullscreen button
+            const fullscreenBtn = document.getElementById('btn-fullscreen');
+            if (fullscreenBtn) {
+                const requestFS = document.documentElement.requestFullscreen ||
+                                  document.documentElement.webkitRequestFullscreen ||
+                                  document.documentElement.mozRequestFullScreen ||
+                                  document.documentElement.msRequestFullscreen;
+
+                const exitFS = document.exitFullscreen ||
+                               document.webkitExitFullscreen ||
+                               document.mozCancelFullScreen ||
+                               document.msExitFullscreen;
+
+                const getFSElement = () => document.fullscreenElement ||
+                                           document.webkitFullscreenElement ||
+                                           document.mozFullScreenElement ||
+                                           document.msFullscreenElement;
+
+                const toggleFullscreen = () => {
+                    if (!getFSElement()) {
+                        if (requestFS) {
+                            requestFS.call(document.documentElement).catch(err => {
+                                console.warn(`Erro ao ativar tela cheia: ${err.message}`);
+                            });
+                        }
+                    } else {
+                        if (exitFS) {
+                            exitFS.call(document).catch(err => {
+                                console.warn(`Erro ao sair da tela cheia: ${err.message}`);
+                            });
+                        }
+                    }
+                };
+
+                fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+                const handleFSChange = () => {
+                    if (getFSElement()) {
+                        fullscreenBtn.textContent = '✕';
+                        fullscreenBtn.title = 'Sair da Tela Cheia';
+                    } else {
+                        fullscreenBtn.textContent = '⛶';
+                        fullscreenBtn.title = 'Tela Cheia';
+                    }
+                };
+
+                document.addEventListener('fullscreenchange', handleFSChange);
+                document.addEventListener('webkitfullscreenchange', handleFSChange);
+                document.addEventListener('mozfullscreenchange', handleFSChange);
+                document.addEventListener('MSFullscreenChange', handleFSChange);
+            }
             // Set up Daily Topic button
             if (topicBtn) {
                 topicBtn.addEventListener('click', openTopicModal);

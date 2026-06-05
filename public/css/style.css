@@ -376,7 +376,8 @@ body {
     font-size: 20px;
 }
 
-.topic-btn:hover {
+.topic-btn:hover,
+#btn-fullscreen:hover {
     transform: scale(1.1);
 }
 
