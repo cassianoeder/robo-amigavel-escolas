@@ -211,12 +211,41 @@ const App = (() => {
 
     // ===== Initialization =====
 
+    function applyHatConfig(cfg) {
+        const hat = document.getElementById('robot-hat');
+        const hatLogo = document.getElementById('hat-logo');
+        
+        if (!hat) return;
+        
+        // Show/hide hat
+        if (cfg.hatEnabled) {
+            hat.classList.remove('hidden');
+            
+            // Apply hat color
+            hat.style.setProperty('--hat-color', cfg.hatColor || '#333333');
+            
+            // Apply logo
+            if (hatLogo && cfg.hatLogo) {
+                hatLogo.setAttribute('href', cfg.hatLogo);
+                hatLogo.classList.remove('hidden');
+            } else if (hatLogo) {
+                hatLogo.setAttribute('href', '');
+                hatLogo.classList.add('hidden');
+            }
+        } else {
+            hat.classList.add('hidden');
+        }
+    }
+
     async function startRobot(cfg) {
         config = cfg;
         console.log('[Robô] Iniciando com config:', { webhook: cfg.webhookUrl, cor: cfg.corDestaque });
 
         // Show robot face
         robotContainer.classList.remove('hidden');
+
+        // Apply hat configuration
+        applyHatConfig(cfg);
 
         // Request permissions
         const micOk = await Speech.requestMicPermission();
@@ -361,6 +390,8 @@ const App = (() => {
             // Config updated while robot is running
             console.log('[Robô] Configuração atualizada');
             document.body.setAttribute('data-theme', cfg.corDestaque);
+            // Apply hat configuration
+            applyHatConfig(config);
         }
     });
 

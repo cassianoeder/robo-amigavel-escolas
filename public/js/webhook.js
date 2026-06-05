@@ -62,6 +62,7 @@ const Webhook = (() => {
      */
     async function enviarFala(config, mensagem) {
         const body = {
+            robot_name: config.robotName || 'Robô',
             sessao_id: config.sessaoId,
             tipo: 'fala',
             mensagem: mensagem,
@@ -77,6 +78,7 @@ const Webhook = (() => {
      */
     async function enviarMovimento(config) {
         const body = {
+            robot_name: config.robotName || 'Robô',
             sessao_id: config.sessaoId,
             tipo: 'movimento detectado',
             modo: config.isKidsMode ? 'kids' : 'normal'

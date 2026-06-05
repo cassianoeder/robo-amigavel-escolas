@@ -17,7 +17,10 @@ const Config = (() => {
         isKidsMode: false,
         topicDia: '',
         volumeRobo: 100, // Volume (0-130) percentage, default 100
-        sttEngine: 'native' // 'native' (Web Speech API) ou 'vosk' (offline beta)
+        hatEnabled: false,      // Mostrar/ocultar boné
+        hatColor: '#333333',   // Cor do boné (hex)
+        hatLogo: '',            // Logo em base64 ou URL (PNG/SVG)
+        robotName: 'Robô'       // Nome do robô (obrigatório)
     };
 
     // Generate UUID v4
@@ -64,6 +67,7 @@ const Config = (() => {
     // DOM elements
     const overlay = document.getElementById('config-overlay');
     const form = document.getElementById('config-form');
+    const robotNameInput = document.getElementById('cfg-robot-name');
     const webhookInput = document.getElementById('cfg-webhook');
     const tokenInput = document.getElementById('cfg-token');
     const colorBtns = document.querySelectorAll('.color-btn');
@@ -73,8 +77,10 @@ const Config = (() => {
     const sleepSelect = document.getElementById('cfg-sleep');
     const volumeSlider = document.getElementById('cfg-volume');
     const volumeValue = document.getElementById('volume-value');
-    const sttEngineSelect = document.getElementById('cfg-stt-engine');
-    const sttEngineHint = document.getElementById('stt-engine-hint');
+    const hatEnabledCheckbox = document.getElementById('cfg-hat-enabled');
+    const hatColorInput = document.getElementById('cfg-hat-color');
+    const hatLogoInput = document.getElementById('cfg-hat-logo');
+    const hatLogoPreview = document.getElementById('hat-logo-preview');
     const settingsBtn = document.getElementById('btn-settings');
     const kidsBtn = document.getElementById('btn-kids-mode');
     const topicBtn = document.getElementById('btn-daily-topic');
@@ -86,6 +92,7 @@ const Config = (() => {
 
     // Populate form with current config
     function populateForm() {
+        robotNameInput.value = current.robotName || 'Robô';
         webhookInput.value = current.webhookUrl || '';
         tokenInput.value = current.jwtToken || '';
         rateSlider.value = current.velocidadeFala;
@@ -93,9 +100,15 @@ const Config = (() => {
         sleepSelect.value = current.timeoutSonolencia;
         volumeSlider.value = current.volumeRobo;
         volumeValue.textContent = current.volumeRobo;
-        if (sttEngineSelect) {
-            sttEngineSelect.value = current.sttEngine || 'native';
-            updateSttEngineHint();
+        if (hatEnabledCheckbox) {
+            hatEnabledCheckbox.checked = current.hatEnabled || false;
+        }
+        if (hatColorInput) {
+            hatColorInput.value = current.hatColor || '#333333';
+        }
+        if (hatLogoPreview && current.hatLogo) {
+            hatLogoPreview.src = current.hatLogo;
+            hatLogoPreview.classList.remove('hidden');
         }
         // Update topic indicator visibility based on stored topic
         if (topicIndicator) {
@@ -143,23 +156,6 @@ const Config = (() => {
     rateSlider.addEventListener('input', () => {
         rateValue.textContent = parseFloat(rateSlider.value).toFixed(1);
     });
-
-    // Update STT engine hint based on current selection
-    function updateSttEngineHint() {
-        if (!sttEngineHint) return;
-        if (sttEngineSelect && sttEngineSelect.value === 'vosk') {
-            sttEngineHint.textContent = 'Vosk: funciona em todos navegadores. Download do modelo (~50MB) acontece no primeiro uso. Processa áudio localmente.';
-            sttEngineHint.style.color = '#FF6B35';
-        } else {
-            sttEngineHint.textContent = 'Padrão funciona no Chrome/Edge. Vosk funciona em todos os navegadores, inclusive offline.';
-            sttEngineHint.style.color = '';
-        }
-    }
-
-    // STT engine change listener
-    if (sttEngineSelect) {
-        sttEngineSelect.addEventListener('change', updateSttEngineHint);
-    }
 
     // Volume slider
     volumeSlider.addEventListener('input', () => {
@@ -217,6 +213,7 @@ const Config = (() => {
 
         // Gather config
         const selectedColor = document.querySelector('.color-btn.selected');
+        current.robotName = robotNameInput.value.trim() || 'Robô';
         current.webhookUrl = webhook;
         current.jwtToken = tokenInput.value.trim();
         current.corDestaque = selectedColor ? selectedColor.dataset.color : 'azul-escuro';
@@ -224,7 +221,9 @@ const Config = (() => {
         current.velocidadeFala = parseFloat(rateSlider.value) || 1.0;
         current.timeoutSonolencia = parseInt(sleepSelect.value) || 40;
         current.volumeRobo = parseInt(volumeSlider.value) || 100;
-        current.sttEngine = sttEngineSelect ? (sttEngineSelect.value || 'native') : 'native';
+        current.hatEnabled = hatEnabledCheckbox ? hatEnabledCheckbox.checked : false;
+        current.hatColor = hatColorInput ? hatColorInput.value : '#333333';
+        current.hatLogo = hatLogoInput ? hatLogoInput.value : '';
 
         // Ensure session ID
         if (!current.sessaoId) {
@@ -328,6 +327,72 @@ const Config = (() => {
                 document.addEventListener('mozfullscreenchange', handleFSChange);
                 document.addEventListener('MSFullscreenChange', handleFSChange);
             }
+
+            // Hat logo upload handler
+            if (hatLogoInput) {
+                hatLogoInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    // Validate file size (500KB max)
+                    if (file.size > 500 * 1024) {
+                        alert('O logo deve ter no máximo 500KB.');
+                        hatLogoInput.value = '';
+                        return;
+                    }
+                    
+                    // Validate file type
+                    if (!file.type.match('image/(png|svg\\+xml)')) {
+                        alert('Apenas arquivos PNG ou SVG são permitidos.');
+                        hatLogoInput.value = '';
+                        return;
+                    }
+                    
+                    // Convert to base64
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const base64 = event.target.result;
+                        hatLogoInput.value = base64;
+                        
+                        // Show preview
+                        if (hatLogoPreview) {
+                            hatLogoPreview.src = base64;
+                            hatLogoPreview.classList.remove('hidden');
+                        }
+                        
+                        // Show remove button
+                        const removeBtn = document.getElementById('btn-remove-logo');
+                        if (removeBtn) {
+                            removeBtn.classList.remove('hidden');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // Hat enabled/disabled toggle
+            if (hatEnabledCheckbox) {
+                hatEnabledCheckbox.addEventListener('change', (e) => {
+                    const hatGroups = document.querySelectorAll('.hat-config-group');
+                    hatGroups.forEach(group => {
+                        group.classList.toggle('hidden', !e.target.checked);
+                    });
+                });
+            }
+
+            // Remove logo button
+            const removeLogoBtn = document.getElementById('btn-remove-logo');
+            if (removeLogoBtn) {
+                removeLogoBtn.addEventListener('click', () => {
+                    if (hatLogoInput) hatLogoInput.value = '';
+                    if (hatLogoPreview) {
+                        hatLogoPreview.src = '';
+                        hatLogoPreview.classList.add('hidden');
+                    }
+                    removeLogoBtn.classList.add('hidden');
+                });
+            }
+
             // Set up Daily Topic button
             if (topicBtn) {
                 topicBtn.addEventListener('click', openTopicModal);
