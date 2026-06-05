@@ -14,7 +14,8 @@ const Config = (() => {
         velocidadeFala: 1.0,
         timeoutSonolencia: 40,
         sessaoId: '',
-        isKidsMode: false
+        isKidsMode: false,
+        topicDia: ''
     };
 
     // Generate UUID v4
@@ -70,6 +71,8 @@ const Config = (() => {
     const sleepSelect = document.getElementById('cfg-sleep');
     const settingsBtn = document.getElementById('btn-settings');
     const kidsBtn = document.getElementById('btn-kids-mode');
+    const topicBtn = document.getElementById('btn-daily-topic');
+    const topicIndicator = document.getElementById('topic-active-indicator');
 
     // Populate form with current config
     function populateForm() {
@@ -78,6 +81,10 @@ const Config = (() => {
         rateSlider.value = current.velocidadeFala;
         rateValue.textContent = current.velocidadeFala.toFixed(1);
         sleepSelect.value = current.timeoutSonolencia;
+        // Update topic indicator visibility based on stored topic
+        if (topicIndicator) {
+            topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
+        }
 
         // Color selection
         colorBtns.forEach(btn => {
@@ -190,7 +197,7 @@ const Config = (() => {
         openModal,
         closeModal,
         onReady(callback) { onConfigReady = callback; },
-        get sessionId() { return current.sessaoId; },
+        getTopic() { return current.topicDia; },
         regenerateSession() {
             current.sessaoId = generateUUID();
             save(current);
@@ -211,6 +218,17 @@ const Config = (() => {
                         onConfigReady(current);
                     }
                 });
+            }
+            // Set up Daily Topic button
+            if (topicBtn) {
+                topicBtn.addEventListener('click', () => {
+                    // Open daily-topic.html in a new tab
+                    window.open('html/daily-topic.html', '_blank');
+                });
+                // Show indicator if topic is set
+                if (topicIndicator) {
+                    topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
+                }
             }
 
             // If already configured, auto-close modal and notify

@@ -65,7 +65,9 @@ const Webhook = (() => {
             sessao_id: config.sessaoId,
             tipo: 'fala',
             mensagem: mensagem,
-            modo: config.isKidsMode ? 'kids' : 'normal'
+            modo: config.isKidsMode ? 'kids' : 'normal',
+            // Include daily topic if set
+            ...(config.topicDia && config.topicDia.trim().length > 0 ? { assunto: config.topicDia.trim() } : {})
         };
         return enviar(config.webhookUrl, body, config.jwtToken);
     }
