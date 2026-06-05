@@ -370,6 +370,73 @@ body {
     color: var(--text-primary);
 }
 
+/* Daily Topic Button & Indicator */
+.topic-btn {
+    position: relative;
+    font-size: 20px;
+}
+
+.topic-btn:hover {
+    transform: scale(1.1);
+}
+
+.topic-indicator {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    background-color: #39FF14; /* neon green */
+    border: 2px solid var(--bg-primary);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.8);
+    animation: pulseGlow 1.5s infinite alternate;
+}
+
+@keyframes pulseGlow {
+    from {
+        transform: scale(1);
+        box-shadow: 0 0 4px rgba(57, 255, 20, 0.5);
+    }
+    to {
+        transform: scale(1.2);
+        box-shadow: 0 0 12px rgba(57, 255, 20, 1);
+    }
+}
+
+/* Modal Buttons Layout & Secondary Button */
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.btn-secondary {
+    flex: 1;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border: 1px solid var(--input-border);
+    border-radius: 14px;
+    font-family: var(--font-family);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
 /* ============================================
    ROBOT FACE
    ============================================ */

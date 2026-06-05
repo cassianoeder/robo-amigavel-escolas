@@ -73,6 +73,10 @@ const Config = (() => {
     const kidsBtn = document.getElementById('btn-kids-mode');
     const topicBtn = document.getElementById('btn-daily-topic');
     const topicIndicator = document.getElementById('topic-active-indicator');
+    const topicOverlay = document.getElementById('daily-topic-overlay');
+    const topicForm = document.getElementById('daily-topic-form');
+    const topicInput = document.getElementById('cfg-topic');
+    const clearTopicBtn = document.getElementById('btn-clear-topic');
 
     // Populate form with current config
     function populateForm() {
@@ -138,6 +142,23 @@ const Config = (() => {
     // Close modal
     function closeModal() {
         overlay.classList.remove('active');
+    }
+
+    // Open topic modal
+    function openTopicModal() {
+        if (topicInput) {
+            topicInput.value = current.topicDia || '';
+        }
+        if (topicOverlay) {
+            topicOverlay.classList.add('active');
+        }
+    }
+
+    // Close topic modal
+    function closeTopicModal() {
+        if (topicOverlay) {
+            topicOverlay.classList.remove('active');
+        }
     }
 
     // Settings button
@@ -221,14 +242,51 @@ const Config = (() => {
             }
             // Set up Daily Topic button
             if (topicBtn) {
-                topicBtn.addEventListener('click', () => {
-                    // Open daily-topic.html in a new tab
-                    window.open('html/daily-topic.html', '_blank');
-                });
+                topicBtn.addEventListener('click', openTopicModal);
                 // Show indicator if topic is set
                 if (topicIndicator) {
                     topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
                 }
+            }
+
+            // Set up Daily Topic Form listeners
+            if (topicForm) {
+                topicForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const topic = topicInput ? topicInput.value.trim().substring(0, 50) : '';
+                    current.topicDia = topic;
+                    save(current);
+                    if (topicIndicator) {
+                        topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
+                    }
+                    closeTopicModal();
+                    if (onConfigReady) {
+                        onConfigReady(current);
+                    }
+                });
+            }
+
+            if (clearTopicBtn) {
+                clearTopicBtn.addEventListener('click', () => {
+                    if (topicInput) topicInput.value = '';
+                    current.topicDia = '';
+                    save(current);
+                    if (topicIndicator) {
+                        topicIndicator.classList.toggle('hidden', true);
+                    }
+                    closeTopicModal();
+                    if (onConfigReady) {
+                        onConfigReady(current);
+                    }
+                });
+            }
+
+            if (topicOverlay) {
+                topicOverlay.addEventListener('click', (e) => {
+                    if (e.target === topicOverlay) {
+                        closeTopicModal();
+                    }
+                });
             }
 
             // If already configured, auto-close modal and notify

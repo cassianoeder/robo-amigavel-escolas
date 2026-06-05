@@ -94,8 +94,40 @@
         </div>
     </div>
 
+    <!-- ===== DAILY TOPIC MODAL ===== -->
+    <div id="daily-topic-overlay" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-icon">📚</div>
+                <h1 id="topic-modal-title">Assunto do Dia</h1>
+                <p class="modal-subtitle">Defina o assunto do dia para o robô focar as respostas</p>
+            </div>
+
+            <form id="daily-topic-form" class="modal-body" autocomplete="off">
+                <!-- Topic Input -->
+                <div class="field-group">
+                    <label for="cfg-topic">Assunto do Dia <span class="optional">(máx. 50 caracteres)</span></label>
+                    <input type="text" id="cfg-topic" maxlength="50" placeholder="Ex: Sistema Solar, Frações, Dinossauros...">
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn-secondary" id="btn-clear-topic">
+                        Limpar
+                    </button>
+                    <button type="submit" class="btn-primary" id="btn-save-topic">
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ===== TOP CONTROLS ===== -->
     <div class="top-controls">
+        <button id="btn-daily-topic" class="control-btn topic-btn" title="Definir Assunto do Dia" aria-label="Assunto do Dia">
+            📚
+            <span id="topic-active-indicator" class="topic-indicator hidden" title="Assunto do dia ativo"></span>
+        </button>
         <button id="btn-kids-mode" class="control-btn kids-btn" title="Ativar Modo Kids" aria-label="Modo Kids">
             👶
         </button>
