@@ -16,7 +16,8 @@ const Config = (() => {
         sessaoId: '',
         isKidsMode: false,
         topicDia: '',
-        volumeRobo: 100 // Volume (0-130) percentage, default 100
+        volumeRobo: 100, // Volume (0-130) percentage, default 100
+        sttEngine: 'native' // 'native' (Web Speech API) ou 'vosk' (offline beta)
     };
 
     // Generate UUID v4
@@ -72,6 +73,8 @@ const Config = (() => {
     const sleepSelect = document.getElementById('cfg-sleep');
     const volumeSlider = document.getElementById('cfg-volume');
     const volumeValue = document.getElementById('volume-value');
+    const sttEngineSelect = document.getElementById('cfg-stt-engine');
+    const sttEngineHint = document.getElementById('stt-engine-hint');
     const settingsBtn = document.getElementById('btn-settings');
     const kidsBtn = document.getElementById('btn-kids-mode');
     const topicBtn = document.getElementById('btn-daily-topic');
@@ -90,6 +93,10 @@ const Config = (() => {
         sleepSelect.value = current.timeoutSonolencia;
         volumeSlider.value = current.volumeRobo;
         volumeValue.textContent = current.volumeRobo;
+        if (sttEngineSelect) {
+            sttEngineSelect.value = current.sttEngine || 'native';
+            updateSttEngineHint();
+        }
         // Update topic indicator visibility based on stored topic
         if (topicIndicator) {
             topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
@@ -136,6 +143,23 @@ const Config = (() => {
     rateSlider.addEventListener('input', () => {
         rateValue.textContent = parseFloat(rateSlider.value).toFixed(1);
     });
+
+    // Update STT engine hint based on current selection
+    function updateSttEngineHint() {
+        if (!sttEngineHint) return;
+        if (sttEngineSelect && sttEngineSelect.value === 'vosk') {
+            sttEngineHint.textContent = 'Vosk: funciona em todos navegadores. Download do modelo (~50MB) acontece no primeiro uso. Processa áudio localmente.';
+            sttEngineHint.style.color = '#FF6B35';
+        } else {
+            sttEngineHint.textContent = 'Padrão funciona no Chrome/Edge. Vosk funciona em todos os navegadores, inclusive offline.';
+            sttEngineHint.style.color = '';
+        }
+    }
+
+    // STT engine change listener
+    if (sttEngineSelect) {
+        sttEngineSelect.addEventListener('change', updateSttEngineHint);
+    }
 
     // Volume slider
     volumeSlider.addEventListener('input', () => {
@@ -200,6 +224,7 @@ const Config = (() => {
         current.velocidadeFala = parseFloat(rateSlider.value) || 1.0;
         current.timeoutSonolencia = parseInt(sleepSelect.value) || 40;
         current.volumeRobo = parseInt(volumeSlider.value) || 100;
+        current.sttEngine = sttEngineSelect ? (sttEngineSelect.value || 'native') : 'native';
 
         // Ensure session ID
         if (!current.sessaoId) {

@@ -28,7 +28,83 @@ const Speech = (() => {
     // Dynamic Volume Gating
     let currentSpeechMaxVolume = 0;
 
-    // ===== STT (Speech-to-Text) =====
+    // ===== STT Engine Detection & Initialization =====
+
+    // Detect which STT engine to use based on config and browser support
+    function detectSTTEngine() {
+        const configured = (Config && Config.current && Config.current.sttEngine) || 'native';
+        const hasNative = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+        const hasVosk = !!(window.VoskSTT);
+
+        // If user explicitly chose Vosk and it's available
+        if (configured === 'vosk') {
+            if (hasVosk) {
+                console.log('[STT] Engine selecionado: Vosk (offline)');
+                return 'vosk';
+            }
+            console.warn('[STT] Vosk solicitado mas não disponível. Usando nativo.');
+            return 'native';
+        }
+
+        // Default: try native first
+        if (hasNative) {
+            console.log('[STT] Engine selecionado: Web Speech API (nativo)');
+            return 'native';
+        }
+
+        // Fallback: use Vosk if native not available
+        if (hasVosk) {
+            console.log('[STT] Web Speech API indisponível. Usando Vosk como fallback.');
+            return 'vosk';
+        }
+
+        console.error('[STT] Nenhum motor de reconhecimento de voz disponível!');
+        return null;
+    }
+
+    // Vosk engine state (wrapper)
+    let voskInitialized = false;
+    let activeEngine = 'native';
+
+    async function init() {
+        activeEngine = detectSTTEngine();
+
+        if (activeEngine === 'vosk') {
+            // Initialize Vosk engine
+            if (window.VoskSTT && !voskInitialized) {
+                try {
+                    // Wire Vosk callbacks to local callbacks
+                    window.VoskSTT.onTranscript((text) => {
+                        // Apply same gating logic as native
+                        if (text && onTranscript) {
+                            onTranscript(text);
+                        }
+                    });
+                    window.VoskSTT.onError((err) => {
+                        console.warn('[Vosk] Erro:', err);
+                    });
+
+                    await window.VoskSTT.init();
+                    voskInitialized = true;
+                    console.log('[STT] Vosk inicializado com sucesso');
+                } catch (e) {
+                    console.error('[STT] Falha ao inicializar Vosk:', e);
+                    // Fallback: try native
+                    if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+                        activeEngine = 'native';
+                        return initRecognition();
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Default: native Web Speech API
+        return initRecognition();
+    }
+
+    // ===== STT (Speech-to-Text) - Native Web Speech API =====
 
     function initRecognition() {
         if (!SpeechRecognition) {
@@ -115,6 +191,16 @@ const Speech = (() => {
     }
 
     function startListening() {
+        // Route to the active engine
+        if (activeEngine === 'vosk') {
+            if (window.VoskSTT && micEnabled) {
+                window.VoskSTT.start();
+                if (onListeningStart) onListeningStart();
+            }
+            return;
+        }
+
+        // Native Web Speech API
         if (!recognition || !micEnabled) return;
         if (isListening) return;
 
@@ -127,6 +213,16 @@ const Speech = (() => {
     }
 
     function stopListening() {
+        // Route to the active engine
+        if (activeEngine === 'vosk') {
+            if (window.VoskSTT) {
+                window.VoskSTT.stop();
+            }
+            if (onListeningStop) onListeningStop();
+            return;
+        }
+
+        // Native Web Speech API
         if (!recognition) return;
         try {
             recognition.stop();
@@ -389,11 +485,17 @@ const Speech = (() => {
     // ===== Public API =====
 
     return {
-        get isListening() { return isListening; },
+        get isListening() {
+            if (activeEngine === 'vosk' && window.VoskSTT) {
+                return window.VoskSTT.isListening;
+            }
+            return isListening;
+        },
         get isMicEnabled() { return micEnabled; },
+        get activeEngine() { return activeEngine; },
 
         init() {
-            return initRecognition();
+            return init();
         },
 
         startListening,

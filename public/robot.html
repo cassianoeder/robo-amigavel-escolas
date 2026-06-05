@@ -86,6 +86,18 @@
                     </select>
                 </div>
 
+                <!-- STT Engine (Speech Recognition) -->
+                <div class="field-group">
+                    <label for="cfg-stt-engine">Motor de Reconhecimento de Voz (STT)</label>
+                    <select id="cfg-stt-engine">
+                        <option value="native">Padrão (Web Speech API) - Recomendado</option>
+                        <option value="vosk">Vosk Beta (Offline) - Para Firefox/Android</option>
+                    </select>
+                    <small class="field-hint" id="stt-engine-hint">
+                        Padrão funciona no Chrome/Edge. Vosk funciona em todos os navegadores, inclusive offline.
+                    </small>
+                </div>
+
                 <button type="submit" class="btn-primary" id="btn-save-config">
                     <span class="btn-icon">🤖</span> Ativar Robô
                 </button>
@@ -259,6 +271,8 @@
         By: Ederson Wermeier 🧡
     </footer>
 
+    <!-- Vosk Browser Library (STT offline - carregado sob demanda) -->
+    <script src="/js/speech-vosk.js"></script>
     <script src="/js/config.js"></script>
     <script src="/js/robot-face.js"></script>
     <script src="/js/speech.js"></script>

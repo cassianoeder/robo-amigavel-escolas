@@ -172,6 +172,13 @@ body {
 
 .required { color: #FF3B3B; }
 .optional { color: var(--text-muted); font-weight: 400; text-transform: none; font-size: 0.78rem; }
+.field-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
 
 .field-group input[type="url"],
 .field-group input[type="text"],
