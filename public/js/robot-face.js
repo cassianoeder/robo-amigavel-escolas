@@ -443,16 +443,13 @@ const RobotFace = (() => {
                 
                 text.setAttribute('x', randomX);
                 text.setAttribute('y', randomY);
-                text.setAttribute('font-size', '60');
+                text.setAttribute('font-size', '40');
                 text.setAttribute('font-weight', 'bold');
-                text.setAttribute('fill', '#FF0000');
-                text.style.opacity = '1';
+                text.setAttribute('fill', '#FFFFFF');
                 
                 sleepZsContainer.appendChild(text);
                 
-                console.log('Sleep Z spawned at:', randomX, randomY, 'Element:', text.outerHTML, 'Container children:', sleepZsContainer.children.length);
-                console.log('Container element:', sleepZsContainer);
-                console.log('Container parent:', sleepZsContainer.parentNode);
+                console.log('Sleep Z spawned at:', randomX, randomY);
                 
                 // Remove after animation completes
                 setTimeout(() => {

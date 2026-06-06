@@ -957,7 +957,7 @@ body {
 }
 
 .sleep-z {
-    /* animation: floatZ 3s forwards ease-out; */
+    animation: floatZ 3s forwards ease-out;
     font-family: 'Outfit', system-ui, sans-serif;
     font-size: 40px;
     font-weight: bold;
