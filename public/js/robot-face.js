@@ -423,46 +423,7 @@ const RobotFace = (() => {
         const sleepZsContainer = document.getElementById('sleep-zs');
         if (sleepZsContainer) {
             sleepZsContainer.classList.remove('hidden');
-            // Spawn Z's periodically
-            let zCount = 0;
-            const zInterval = setInterval(() => {
-                if (currentState !== 'sleepy') {
-                    clearInterval(zInterval);
-                    return;
-                }
-                
-                const text = document.createElement('div');
-                text.className = 'sleep-z';
-                text.textContent = 'z';
-                
-                // Position near the mouth (around x: 350-450, y: 380-420)
-                const randomX = 350 + Math.random() * 100;
-                const randomY = 380 + Math.random() * 40;
-                
-                text.style.left = randomX + 'px';
-                text.style.top = randomY + 'px';
-                
-                sleepZsContainer.appendChild(text);
-                
-                // Remove after animation completes
-                setTimeout(() => {
-                    if (text.parentNode) text.parentNode.removeChild(text);
-                }, 3000);
-                
-                zCount++;
-                if (zCount >= 3) {
-                    clearInterval(zInterval);
-                    zCount = 0;
-                    setTimeout(() => {
-                        if (currentState === 'sleepy') {
-                            // Start spawning Z's again
-                            setSleepy();
-                        }
-                    }, 2000);
-                }
-            }, 800);
-        } else {
-            console.error('sleep-zs container not found');
+            sleepZsContainer.classList.add('visible');
         }
 
         // Periodic yawns and peeks
@@ -511,8 +472,8 @@ const RobotFace = (() => {
         // Hide sleep Z's
         const sleepZsContainer = document.getElementById('sleep-zs');
         if (sleepZsContainer) {
+            sleepZsContainer.classList.remove('visible');
             sleepZsContainer.classList.add('hidden');
-            sleepZsContainer.innerHTML = '';
         }
     }
 
