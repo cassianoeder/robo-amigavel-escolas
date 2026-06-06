@@ -40,6 +40,36 @@
                     <input type="text" id="cfg-token" placeholder="eyJhbGciOiJIUzI1NiIs...">
                 </div>
 
+                <!-- Location Section -->
+                <div class="field-group">
+                    <label>Localização</label>
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-pais">País</label>
+                    <input type="text" id="cfg-pais" placeholder="Brasil">
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-estado">Estado</label>
+                    <input type="text" id="cfg-estado" placeholder="São Paulo">
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-cidade">Cidade</label>
+                    <input type="text" id="cfg-cidade" placeholder="São Paulo">
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-nome-escola">Nome da Escola</label>
+                    <input type="text" id="cfg-nome-escola" placeholder="Escola Municipal">
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-sala-local">Sala ou Local Físico</label>
+                    <input type="text" id="cfg-sala-local" placeholder="Sala 101 ou Recepção">
+                </div>
+
                 <!-- Accent Color -->
                 <div class="field-group">
                     <label>Cor de destaque do robô</label>
@@ -117,6 +147,10 @@
 
                 <button type="submit" class="btn-primary" id="btn-save-config">
                     <span class="btn-icon">🤖</span> Ativar Robô
+                </button>
+
+                <button type="button" class="btn-secondary" id="btn-test-webhook" disabled>
+                    <span class="btn-icon">🧪</span> Testar Webhook
                 </button>
             </form>
         </div>

@@ -61,14 +61,24 @@ const Webhook = (() => {
      * Envia fala transcrita para o webhook
      */
     async function enviarFala(config, mensagem) {
+        const now = new Date();
         const body = {
             robot_name: config.robotName || 'Robô',
             sessao_id: config.sessaoId,
             tipo: 'fala',
             mensagem: mensagem,
             modo: config.isKidsMode ? 'kids' : 'normal',
-            // Include daily topic if set
-            ...(config.topicDia && config.topicDia.trim().length > 0 ? { assunto: config.topicDia.trim() } : {})
+            assunto: config.topicDia ? config.topicDia.trim() : '',
+            // Location fields
+            pais: config.pais || '',
+            estado: config.estado || '',
+            cidade: config.cidade || '',
+            nome_escola: config.nomeEscola || '',
+            sala_local: config.salaLocal || '',
+            // Automatic date/time
+            hora: now.toLocaleTimeString('pt-BR'),
+            dia: now.toLocaleDateString('pt-BR'),
+            ano: now.getFullYear()
         };
         return enviar(config.webhookUrl, body, config.jwtToken);
     }
@@ -77,17 +87,55 @@ const Webhook = (() => {
      * Envia evento de movimento detectado
      */
     async function enviarMovimento(config) {
+        const now = new Date();
         const body = {
             robot_name: config.robotName || 'Robô',
             sessao_id: config.sessaoId,
             tipo: 'movimento detectado',
-            modo: config.isKidsMode ? 'kids' : 'normal'
+            modo: config.isKidsMode ? 'kids' : 'normal',
+            // Location fields
+            pais: config.pais || '',
+            estado: config.estado || '',
+            cidade: config.cidade || '',
+            nome_escola: config.nomeEscola || '',
+            sala_local: config.salaLocal || '',
+            // Automatic date/time
+            hora: now.toLocaleTimeString('pt-BR'),
+            dia: now.toLocaleDateString('pt-BR'),
+            ano: now.getFullYear()
+        };
+        return enviar(config.webhookUrl, body, config.jwtToken);
+    }
+
+    /**
+     * Envia teste de webhook com dados de exemplo
+     */
+    async function enviarTeste(config) {
+        const now = new Date();
+        const body = {
+            robot_name: config.robotName || 'Robô de Teste',
+            sessao_id: config.sessaoId || 'teste-' + Date.now(),
+            tipo: 'teste',
+            mensagem: 'Esta é uma mensagem de teste do robô.',
+            modo: config.isKidsMode ? 'kids' : 'normal',
+            assunto: config.topicDia || 'Assunto de teste',
+            // Location fields
+            pais: config.pais || 'Brasil',
+            estado: config.estado || 'São Paulo',
+            cidade: config.cidade || 'São Paulo',
+            nome_escola: config.nomeEscola || 'Escola de Teste',
+            sala_local: config.salaLocal || 'Sala 101',
+            // Automatic date/time
+            hora: now.toLocaleTimeString('pt-BR'),
+            dia: now.toLocaleDateString('pt-BR'),
+            ano: now.getFullYear()
         };
         return enviar(config.webhookUrl, body, config.jwtToken);
     }
 
     return {
         enviarFala,
-        enviarMovimento
+        enviarMovimento,
+        enviarTeste
     };
 })();

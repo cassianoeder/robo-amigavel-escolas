@@ -20,7 +20,12 @@ const Config = (() => {
         hatEnabled: false,      // Mostrar/ocultar boné
         hatColor: '#333333',   // Cor do boné (hex)
         hatLogo: '',            // Logo em base64 ou URL (PNG/SVG)
-        robotName: 'Robô'       // Nome do robô (obrigatório)
+        robotName: 'Robô',      // Nome do robô (obrigatório)
+        pais: '',               // País
+        estado: '',             // Estado
+        cidade: '',             // Cidade
+        nomeEscola: '',         // Nome da escola
+        salaLocal: ''           // Sala ou local físico
     };
 
     // Generate UUID v4
@@ -70,6 +75,11 @@ const Config = (() => {
     const robotNameInput = document.getElementById('cfg-robot-name');
     const webhookInput = document.getElementById('cfg-webhook');
     const tokenInput = document.getElementById('cfg-token');
+    const paisInput = document.getElementById('cfg-pais');
+    const estadoInput = document.getElementById('cfg-estado');
+    const cidadeInput = document.getElementById('cfg-cidade');
+    const nomeEscolaInput = document.getElementById('cfg-nome-escola');
+    const salaLocalInput = document.getElementById('cfg-sala-local');
     const colorBtns = document.querySelectorAll('.color-btn');
     const voiceSelect = document.getElementById('cfg-voice');
     const rateSlider = document.getElementById('cfg-rate');
@@ -89,12 +99,18 @@ const Config = (() => {
     const topicForm = document.getElementById('daily-topic-form');
     const topicInput = document.getElementById('cfg-topic');
     const clearTopicBtn = document.getElementById('btn-clear-topic');
+    const testWebhookBtn = document.getElementById('btn-test-webhook');
 
     // Populate form with current config
     function populateForm() {
         robotNameInput.value = current.robotName || 'Robô';
         webhookInput.value = current.webhookUrl || '';
         tokenInput.value = current.jwtToken || '';
+        paisInput.value = current.pais || '';
+        estadoInput.value = current.estado || '';
+        cidadeInput.value = current.cidade || '';
+        nomeEscolaInput.value = current.nomeEscola || '';
+        salaLocalInput.value = current.salaLocal || '';
         rateSlider.value = current.velocidadeFala;
         rateValue.textContent = current.velocidadeFala.toFixed(1);
         sleepSelect.value = current.timeoutSonolencia;
@@ -109,6 +125,10 @@ const Config = (() => {
         if (hatLogoPreview && current.hatLogo) {
             hatLogoPreview.src = current.hatLogo;
             hatLogoPreview.classList.remove('hidden');
+        }
+        // Enable/disable test button based on webhook
+        if (testWebhookBtn) {
+            testWebhookBtn.disabled = !webhookInput.value.trim();
         }
         // Update topic indicator visibility based on stored topic
         if (topicIndicator) {
@@ -155,6 +175,13 @@ const Config = (() => {
     // Rate slider
     rateSlider.addEventListener('input', () => {
         rateValue.textContent = parseFloat(rateSlider.value).toFixed(1);
+    });
+
+    // Webhook input listener to enable/disable test button
+    webhookInput.addEventListener('input', () => {
+        if (testWebhookBtn) {
+            testWebhookBtn.disabled = !webhookInput.value.trim();
+        }
     });
 
     // Volume slider
@@ -216,6 +243,11 @@ const Config = (() => {
         current.robotName = robotNameInput.value.trim() || 'Robô';
         current.webhookUrl = webhook;
         current.jwtToken = tokenInput.value.trim();
+        current.pais = paisInput.value.trim();
+        current.estado = estadoInput.value.trim();
+        current.cidade = cidadeInput.value.trim();
+        current.nomeEscola = nomeEscolaInput.value.trim();
+        current.salaLocal = salaLocalInput.value.trim();
         current.corDestaque = selectedColor ? selectedColor.dataset.color : 'azul-escuro';
         current.vozIndex = parseInt(voiceSelect.value) || 0;
         current.velocidadeFala = parseFloat(rateSlider.value) || 1.0;
@@ -390,6 +422,53 @@ const Config = (() => {
                         hatLogoPreview.classList.add('hidden');
                     }
                     removeLogoBtn.classList.add('hidden');
+                });
+            }
+
+            // Test webhook button
+            if (testWebhookBtn) {
+                testWebhookBtn.addEventListener('click', async () => {
+                    const webhook = webhookInput.value.trim();
+                    if (!webhook) {
+                        alert('Preencha a URL do webhook para testar.');
+                        return;
+                    }
+
+                    // Create temporary config with current form values
+                    const testConfig = {
+                        webhookUrl: webhook,
+                        jwtToken: tokenInput.value.trim(),
+                        robotName: robotNameInput.value.trim() || 'Robô de Teste',
+                        sessaoId: current.sessaoId || 'teste-' + Date.now(),
+                        isKidsMode: current.isKidsMode || false,
+                        topicDia: current.topicDia || '',
+                        pais: paisInput.value.trim(),
+                        estado: estadoInput.value.trim(),
+                        cidade: cidadeInput.value.trim(),
+                        nomeEscola: nomeEscolaInput.value.trim(),
+                        salaLocal: salaLocalInput.value.trim()
+                    };
+
+                    testWebhookBtn.disabled = true;
+                    testWebhookBtn.textContent = 'Enviando...';
+
+                    try {
+                        if (typeof Webhook !== 'undefined' && Webhook.enviarTeste) {
+                            const response = await Webhook.enviarTeste(testConfig);
+                            if (response) {
+                                alert('✅ Teste enviado com sucesso!\n\nResposta do webhook:\n' + response);
+                            } else {
+                                alert('⚠️ Teste enviado, mas não houve resposta do webhook.');
+                            }
+                        } else {
+                            alert('❌ Módulo Webhook não disponível.');
+                        }
+                    } catch (error) {
+                        alert('❌ Erro ao enviar teste: ' + error.message);
+                    } finally {
+                        testWebhookBtn.disabled = false;
+                        testWebhookBtn.innerHTML = '<span class="btn-icon">🧪</span> Testar Webhook';
+                    }
                 });
             }
 
