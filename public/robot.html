@@ -168,8 +168,23 @@
             <form id="daily-topic-form" class="modal-body" autocomplete="off">
                 <!-- Topic Input -->
                 <div class="field-group">
-                    <label for="cfg-topic">Assunto do Dia <span class="optional">(máx. 50 caracteres)</span></label>
-                    <input type="text" id="cfg-topic" maxlength="50" placeholder="Ex: Sistema Solar, Frações, Dinossauros...">
+                    <label for="cfg-topic">Assunto do Dia <span class="optional">(máx. 70 caracteres)</span></label>
+                    <input type="text" id="cfg-topic" maxlength="70" placeholder="Ex: Sistema Solar, Frações, Dinossauros...">
+                </div>
+
+                <!-- BNCC Section -->
+                <div class="field-group">
+                    <label>BNCC (Base Nacional Comum Curricular) <span class="optional">(opcional)</span></label>
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-bncc-codigo">Código BNCC</label>
+                    <input type="text" id="cfg-bncc-codigo" placeholder="Ex: EF05MA01">
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-bncc-descricao">Descrição do Componente</label>
+                    <input type="text" id="cfg-bncc-descricao" maxlength="200" placeholder="Ex: Resolver e elaborar problemas de adição e subtração">
                 </div>
 
                 <div class="modal-buttons">

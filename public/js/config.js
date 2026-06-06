@@ -25,7 +25,9 @@ const Config = (() => {
         estado: '',             // Estado
         cidade: '',             // Cidade
         nomeEscola: '',         // Nome da escola
-        salaLocal: ''           // Sala ou local físico
+        salaLocal: '',          // Sala ou local físico
+        codigoBNCC: '',         // Código BNCC (opcional)
+        descricaoBNCC: ''       // Descrição do componente BNCC (opcional)
     };
 
     // Generate UUID v4
@@ -98,6 +100,8 @@ const Config = (() => {
     const topicOverlay = document.getElementById('daily-topic-overlay');
     const topicForm = document.getElementById('daily-topic-form');
     const topicInput = document.getElementById('cfg-topic');
+    const bnccCodigoInput = document.getElementById('cfg-bncc-codigo');
+    const bnccDescricaoInput = document.getElementById('cfg-bncc-descricao');
     const clearTopicBtn = document.getElementById('btn-clear-topic');
     const testWebhookBtn = document.getElementById('btn-test-webhook');
 
@@ -205,6 +209,12 @@ const Config = (() => {
     function openTopicModal() {
         if (topicInput) {
             topicInput.value = current.topicDia || '';
+        }
+        if (bnccCodigoInput) {
+            bnccCodigoInput.value = current.codigoBNCC || '';
+        }
+        if (bnccDescricaoInput) {
+            bnccDescricaoInput.value = current.descricaoBNCC || '';
         }
         if (topicOverlay) {
             topicOverlay.classList.add('active');
@@ -485,8 +495,10 @@ const Config = (() => {
             if (topicForm) {
                 topicForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    const topic = topicInput ? topicInput.value.trim().substring(0, 50) : '';
+                    const topic = topicInput ? topicInput.value.trim().substring(0, 70) : '';
                     current.topicDia = topic;
+                    current.codigoBNCC = bnccCodigoInput ? bnccCodigoInput.value.trim() : '';
+                    current.descricaoBNCC = bnccDescricaoInput ? bnccDescricaoInput.value.trim() : '';
                     save(current);
                     if (topicIndicator) {
                         topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);

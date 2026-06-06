@@ -69,6 +69,9 @@ const Webhook = (() => {
             mensagem: mensagem,
             modo: config.isKidsMode ? 'kids' : 'normal',
             assunto: config.topicDia ? config.topicDia.trim() : '',
+            // BNCC fields
+            codigo_bncc: config.codigoBNCC || '',
+            descricao_bncc: config.descricaoBNCC || '',
             // Location fields
             pais: config.pais || '',
             estado: config.estado || '',
@@ -93,6 +96,10 @@ const Webhook = (() => {
             sessao_id: config.sessaoId,
             tipo: 'movimento detectado',
             modo: config.isKidsMode ? 'kids' : 'normal',
+            assunto: config.topicDia ? config.topicDia.trim() : '',
+            // BNCC fields
+            codigo_bncc: config.codigoBNCC || '',
+            descricao_bncc: config.descricaoBNCC || '',
             // Location fields
             pais: config.pais || '',
             estado: config.estado || '',
@@ -119,6 +126,9 @@ const Webhook = (() => {
             mensagem: 'Esta é uma mensagem de teste do robô.',
             modo: config.isKidsMode ? 'kids' : 'normal',
             assunto: config.topicDia || 'Assunto de teste',
+            // BNCC fields
+            codigo_bncc: config.codigoBNCC || 'EF05MA01',
+            descricao_bncc: config.descricaoBNCC || 'Resolver e elaborar problemas de adição e subtração',
             // Location fields
             pais: config.pais || 'Brasil',
             estado: config.estado || 'São Paulo',
