@@ -402,6 +402,20 @@ const App = (() => {
         }
     });
 
+    // Logout logic
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', async () => {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login';
+            } catch (err) {
+                console.error('Erro ao sair:', err);
+                window.location.href = '/login';
+            }
+        });
+    }
+
     // Boot
     Config.init();
 })();

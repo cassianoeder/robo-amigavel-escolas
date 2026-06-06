@@ -3,8 +3,6 @@
    ============================================ */
 
 const Config = (() => {
-    const STORAGE_KEY = 'robo_amigavel_config';
-
     // Defaults
     const defaults = {
         webhookUrl: '',
@@ -40,37 +38,37 @@ const Config = (() => {
         });
     }
 
-    // Load from localStorage
-    function load() {
+    // Load from server API
+    async function load() {
         try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const parsed = JSON.parse(stored);
+            const res = await fetch('/api/config');
+            if (res.ok) {
+                const parsed = await res.json();
                 return { ...defaults, ...parsed };
             }
         } catch (e) {
-            console.warn('Erro ao carregar config:', e);
+            console.warn('Erro ao carregar config da API:', e);
         }
         return { ...defaults };
     }
 
-    // Save to localStorage
-    function save(config) {
+    // Save to server API
+    async function save(config) {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+            await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
         } catch (e) {
-            console.warn('Erro ao salvar config:', e);
+            console.warn('Erro ao salvar config na API:', e);
         }
     }
 
-    // Current config
-    let current = load();
+    // Current config (initial defaults)
+    let current = { ...defaults };
 
-    // Ensure session ID
-    if (!current.sessaoId) {
-        current.sessaoId = generateUUID();
-        save(current);
-    }
+    // Will ensure session ID inside init after loading
 
     // DOM elements
     const overlay = document.getElementById('config-overlay');
@@ -242,7 +240,7 @@ const Config = (() => {
     // Form submission
     let onConfigReady = null;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const webhook = webhookInput.value.trim();
@@ -276,7 +274,7 @@ const Config = (() => {
             current.sessaoId = generateUUID();
         }
 
-        save(current);
+        await save(current);
         document.body.setAttribute('data-theme', current.corDestaque);
 
         // CRITICAL FOR MOBILE: Unlock TTS inside user gesture (tap/click)
@@ -300,22 +298,32 @@ const Config = (() => {
         closeModal,
         onReady(callback) { onConfigReady = callback; },
         getTopic() { return current.topicDia; },
-        regenerateSession() {
+        async regenerateSession() {
             current.sessaoId = generateUUID();
-            save(current);
+            await save(current);
             return current.sessaoId;
         },
-        init() {
+        async init() {
+            // Load real config from server
+            const serverConfig = await load();
+            current = serverConfig;
+
+            // Ensure session ID
+            if (!current.sessaoId) {
+                current.sessaoId = generateUUID();
+                await save(current);
+            }
+
             populateForm();
             loadVoices();
 
             // Set up Kids Mode button state and event listener
             if (kidsBtn) {
                 kidsBtn.classList.toggle('active', !!current.isKidsMode);
-                kidsBtn.addEventListener('click', () => {
+                kidsBtn.addEventListener('click', async () => {
                     current.isKidsMode = !current.isKidsMode;
                     kidsBtn.classList.toggle('active', current.isKidsMode);
-                    save(current);
+                    await save(current);
                     if (onConfigReady) {
                         onConfigReady(current);
                     }
@@ -497,13 +505,13 @@ const Config = (() => {
 
             // Set up Daily Topic Form listeners
             if (topicForm) {
-                topicForm.addEventListener('submit', (e) => {
+                topicForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const topic = topicInput ? topicInput.value.trim().substring(0, 70) : '';
                     current.topicDia = topic;
                     current.codigoBNCC = bnccCodigoInput ? bnccCodigoInput.value.trim() : '';
                     current.descricaoBNCC = bnccDescricaoInput ? bnccDescricaoInput.value.trim() : '';
-                    save(current);
+                    await save(current);
                     if (topicIndicator) {
                         topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
                     }
@@ -515,10 +523,10 @@ const Config = (() => {
             }
 
             if (clearTopicBtn) {
-                clearTopicBtn.addEventListener('click', () => {
+                clearTopicBtn.addEventListener('click', async () => {
                     if (topicInput) topicInput.value = '';
                     current.topicDia = '';
-                    save(current);
+                    await save(current);
                     if (topicIndicator) {
                         topicIndicator.classList.toggle('hidden', true);
                     }
