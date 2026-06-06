@@ -435,14 +435,18 @@ const RobotFace = (() => {
                 text.setAttribute('class', 'sleep-z');
                 text.textContent = 'z';
                 
-                // Randomize position near the head
-                const randomX = 100 + Math.random() * 600;
-                const randomY = 100 + Math.random() * 50;
+                // Randomize position near the head (higher up)
+                const randomX = 150 + Math.random() * 500;
+                const randomY = 50 + Math.random() * 80;
                 
                 text.setAttribute('x', randomX);
                 text.setAttribute('y', randomY);
+                text.setAttribute('font-size', '30');
+                text.setAttribute('font-weight', 'bold');
                 
                 sleepZsContainer.appendChild(text);
+                
+                console.log('Sleep Z spawned at:', randomX, randomY);
                 
                 // Remove after animation completes
                 setTimeout(() => {
@@ -461,6 +465,8 @@ const RobotFace = (() => {
                     }, 2000);
                 }
             }, 800);
+        } else {
+            console.error('sleep-zs container not found');
         }
 
         // Periodic yawns and peeks
