@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Política de Privacidade — Meu Robô Personalizado',
+  title: 'Política de Privacidade — Assistente de Voz',
   description: 'Política de privacidade e tratamento de dados pessoais conforme a LGPD.',
 };
 
@@ -11,8 +11,19 @@ export default function PrivacidadePage() {
       {/* Header */}
       <header className="p-6 flex justify-between items-center border-b border-white/10 backdrop-blur-md sticky top-0 z-50 bg-[#0a0a12]/80">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <span className="text-2xl">🤖</span>
-          <span className="font-bold text-xl tracking-wide">Meu Robô Personalizado</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#priv-gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <defs>
+              <linearGradient id="priv-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#60a5fa"/>
+                <stop offset="100%" stopColor="#34d399"/>
+              </linearGradient>
+            </defs>
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+          <span className="font-bold text-xl tracking-wide">Assistente de Voz</span>
         </Link>
         <Link href="/" className="px-5 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors">
           ← Voltar
@@ -31,8 +42,8 @@ export default function PrivacidadePage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">1. Introdução</h2>
             <p>
-              A plataforma <strong className="text-white/90">Meu Robô Personalizado</strong> é um projeto educacional 
-              gratuito criado para ensinar adolescentes sobre inteligência artificial, automação, webhooks, 
+              A plataforma <strong className="text-white/90">Assistente de Voz</strong> é um projeto educacional 
+              gratuito criado para ensinar alunos, professores e curiosos sobre inteligência artificial, automação, webhooks, 
               JSON e lógica de programação. Esta política descreve como tratamos os dados pessoais coletados, 
               em conformidade com a <strong className="text-white/90">Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong>.
             </p>
@@ -188,7 +199,7 @@ export default function PrivacidadePage() {
             </p>
             <div className="mt-3 bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
               <p><strong className="text-white/90">Responsável:</strong> Ederson Wermeier</p>
-              <p className="mt-1"><strong className="text-white/90">Projeto:</strong> Meu Robô Personalizado</p>
+              <p className="mt-1"><strong className="text-white/90">Projeto:</strong> Assistente de Voz</p>
             </div>
           </section>
 
@@ -204,7 +215,7 @@ export default function PrivacidadePage() {
 
       {/* Footer */}
       <footer className="p-6 text-center text-white/40 text-sm border-t border-white/10">
-        Meu Robô Personalizado — Projeto educacional por Ederson Wermeier 🧡
+        Assistente de Voz. Projeto educacional por Ederson Wermeier 🧡
       </footer>
     </div>
   );

@@ -2,8 +2,8 @@ import './globals.css';
 import CookieBanner from './components/CookieBanner';
 
 export const metadata = {
-  title: 'Meu Robô Personalizado — Aprenda IA, Automação e Programação',
-  description: 'Projeto educacional gratuito para adolescentes aprenderem sobre webhooks, JSON, n8n, IA e lógica de programação criando seu próprio robô assistente de voz.',
+  title: 'Assistente de Voz — Robô de IA grátis com n8n',
+  description: 'Crie seu próprio assistente de voz de graça. Use n8n Cloud (14 dias grátis), self-hosted, ou o n8n pré-configurado do Academy. Para alunos, professores e curiosos.',
 };
 
 export default function RootLayout({ children }) {
