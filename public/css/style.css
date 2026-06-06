@@ -961,40 +961,31 @@ body {
 }
 
 .sleep-zs.visible .z1 {
-    animation: zFloat 2s ease-in-out infinite;
+    animation: zFloatMouth 3s ease-out infinite;
 }
 
 .sleep-zs.visible .z2 {
-    animation: zFloat 2s ease-in-out 0.5s infinite;
+    animation: zFloatMouth 3s ease-out 1s infinite;
 }
 
 .sleep-zs.visible .z3 {
-    animation: zFloat 2s ease-in-out 1s infinite;
+    animation: zFloatMouth 3s ease-out 2s infinite;
 }
 
 .sleep-z {
     font-family: 'Outfit', system-ui, sans-serif;
     font-size: 40px;
     font-weight: bold;
-    fill: #FFFFFF;
+    fill: var(--mouth-color);
     opacity: 0;
 }
 
-@keyframes zFloat {
-    0% {
-        transform: translateY(0);
-        opacity: 0;
-    }
-    20% {
-        opacity: 1;
-    }
-    80% {
-        opacity: 0.8;
-    }
-    100% {
-        transform: translateY(-150px);
-        opacity: 0;
-    }
+@keyframes zFloatMouth {
+    0%   { transform: translate(0, 0)            scale(0.4);  opacity: 0; }
+    15%  { transform: translate(15px, -25px)    scale(0.7);  opacity: 1; }
+    60%  { transform: translate(140px, -170px)  scale(1.0);  opacity: 1; }
+    85%  { transform: translate(220px, -250px)  scale(1.15); opacity: 0.5; }
+    100% { transform: translate(260px, -300px)  scale(1.25); opacity: 0; }
 }
 
 @keyframes floatHeart {

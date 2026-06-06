@@ -421,15 +421,15 @@ const RobotFace = (() => {
 
         // Show sleep Z's
         const sleepZsContainer = document.getElementById('sleep-zs');
-        console.log('setSleepy called, sleepZsContainer:', sleepZsContainer);
         if (sleepZsContainer) {
-            sleepZsContainer.classList.remove('hidden');
-            sleepZsContainer.classList.add('visible');
-            console.log('Sleep Zs classes after showing:', sleepZsContainer.className);
+            sleepZsContainer.setAttribute('class', 'sleep-zs visible');
         }
 
         // Periodic yawns and peeks
-        stopSleepy();
+        if (sleepyInterval) {
+            clearInterval(sleepyInterval);
+            sleepyInterval = null;
+        }
         let cycle = 0;
         sleepyInterval = setInterval(() => {
             cycle++;
@@ -474,8 +474,7 @@ const RobotFace = (() => {
         // Hide sleep Z's
         const sleepZsContainer = document.getElementById('sleep-zs');
         if (sleepZsContainer) {
-            sleepZsContainer.classList.remove('visible');
-            sleepZsContainer.classList.add('hidden');
+            sleepZsContainer.setAttribute('class', 'sleep-zs hidden');
         }
     }
 
@@ -518,51 +517,67 @@ const RobotFace = (() => {
             try {
                 const now = ctx.currentTime;
 
-                // --- IN-BREATH (Low Mechanical Snore) ---
-                const oscIn = ctx.createOscillator();
-                const gainIn = ctx.createGain();
+                // --- BREATH (filtered brown noise — sounds like air moving) ---
+                const bufferSize = ctx.sampleRate * 2;
+                const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const noiseData = noiseBuffer.getChannelData(0);
+                let lastOut = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    noiseData[i] = (lastOut + 0.02 * white) / 1.02;
+                    lastOut = noiseData[i];
+                    noiseData[i] *= 2.5;
+                }
 
-                oscIn.type = 'sawtooth';
-                oscIn.frequency.setValueAtTime(110, now);
-                oscIn.frequency.linearRampToValueAtTime(130, now + 1.8);
+                const breath = ctx.createBufferSource();
+                breath.buffer = noiseBuffer;
+                breath.loop = true;
 
-                gainIn.gain.setValueAtTime(0, now);
-                gainIn.gain.linearRampToValueAtTime(0.45, now + 0.4);
-                gainIn.gain.linearRampToValueAtTime(0.45, now + 1.4);
-                gainIn.gain.linearRampToValueAtTime(0, now + 1.8);
+                const breathFilter = ctx.createBiquadFilter();
+                breathFilter.type = 'lowpass';
+                breathFilter.frequency.value = 400;
+                breathFilter.Q.value = 0.5;
 
-                oscIn.connect(gainIn);
-                gainIn.connect(ctx.destination);
+                const breathGain = ctx.createGain();
+                // 0-2s: inhale (0 → 0.06), 2-2.5s: hold, 2.5-5s: exhale (0.06 → 0), 5-6s: silence
+                breathGain.gain.setValueAtTime(0, now);
+                breathGain.gain.linearRampToValueAtTime(0.06, now + 2);
+                breathGain.gain.linearRampToValueAtTime(0.06, now + 2.5);
+                breathGain.gain.linearRampToValueAtTime(0, now + 5);
+                breathGain.gain.setValueAtTime(0, now + 6);
 
-                oscIn.start(now);
-                oscIn.stop(now + 1.8);
+                breath.connect(breathFilter);
+                breathFilter.connect(breathGain);
+                breathGain.connect(ctx.destination);
 
-                activeSnoreNodes.push(oscIn, gainIn);
+                breath.start(now);
+                breath.stop(now + 6);
 
-                // --- OUT-BREATH (Soft Whistle Sigh) ---
-                const oscOut = ctx.createOscillator();
-                const gainOut = ctx.createGain();
+                // --- SNORE (low chest rumble — only on the exhale) ---
+                const rumble = ctx.createOscillator();
+                rumble.type = 'sine';
+                rumble.frequency.setValueAtTime(55, now + 2.5);
+                rumble.frequency.linearRampToValueAtTime(45, now + 5);
 
-                oscOut.type = 'sine';
-                oscOut.frequency.setValueAtTime(320, now + 2.2);
-                oscOut.frequency.exponentialRampToValueAtTime(220, now + 3.7);
+                const rumbleGain = ctx.createGain();
+                rumbleGain.gain.setValueAtTime(0, now + 2.5);
+                rumbleGain.gain.linearRampToValueAtTime(0.12, now + 3);
+                rumbleGain.gain.linearRampToValueAtTime(0, now + 5);
 
-                gainOut.gain.setValueAtTime(0, now + 2.2);
-                gainOut.gain.linearRampToValueAtTime(0.25, now + 2.5);
-                gainOut.gain.linearRampToValueAtTime(0, now + 3.7);
+                rumble.connect(rumbleGain);
+                rumbleGain.connect(ctx.destination);
 
-                oscOut.connect(gainOut);
-                gainOut.connect(ctx.destination);
+                rumble.start(now + 2.5);
+                rumble.stop(now + 5);
 
-                oscOut.start(now + 2.2);
-                oscOut.stop(now + 3.7);
-
-                activeSnoreNodes.push(oscOut, gainOut);
+                activeSnoreNodes.push(breath, breathFilter, breathGain, rumble, rumbleGain);
 
                 // Clean up finished nodes
                 setTimeout(() => {
-                    activeSnoreNodes = activeSnoreNodes.filter(n => n !== oscIn && n !== gainIn && n !== oscOut && n !== gainOut);
-                }, 4000);
+                    activeSnoreNodes = activeSnoreNodes.filter(
+                        n => n !== breath && n !== breathFilter && n !== breathGain && n !== rumble && n !== rumbleGain
+                    );
+                }, 6500);
 
             } catch (e) {
                 console.warn('Erro ao reproduzir som de ronco:', e);
@@ -571,7 +586,7 @@ const RobotFace = (() => {
 
         const doStart = () => {
             playSnoreCycle();
-            snoreInterval = setInterval(playSnoreCycle, 4500);
+            snoreInterval = setInterval(playSnoreCycle, 6500);
         };
 
         if (ctx.state === 'suspended') {
