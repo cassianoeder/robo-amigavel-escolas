@@ -37,24 +37,28 @@
     --accent-glow: rgba(255, 105, 180, 0.35);
     --face-bg: #FF69B4;
     --eyelid-color: #FF69B4;
+    --eye-pupil: #CC3366;
 }
 [data-theme="verde-neon"] {
     --accent: #39FF14;
     --accent-glow: rgba(57, 255, 20, 0.3);
     --face-bg: #22CC10;
     --eyelid-color: #22CC10;
+    --eye-pupil: #1A8008;
 }
 [data-theme="azul-escuro"] {
     --accent: #1B3A6B;
     --accent-glow: rgba(27, 58, 107, 0.4);
     --face-bg: #1B3A6B;
     --eyelid-color: #1B3A6B;
+    --eye-pupil: #0A1A30;
 }
 [data-theme="laranja"] {
     --accent: #FF6B35;
     --accent-glow: rgba(255, 107, 53, 0.35);
     --face-bg: #FF6B35;
     --eyelid-color: #FF6B35;
+    --eye-pupil: #CC4415;
 }
 [data-theme="branco"] {
     --accent: #E8E8F0;
@@ -62,6 +66,7 @@
     --face-bg: #D8D8E8;
     --eyelid-color: #D8D8E8;
     --eye-iris: #5A4F3E;
+    --eye-pupil: #666680;
 }
 
 /* --- Reset & Base --- */
