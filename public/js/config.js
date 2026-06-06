@@ -27,7 +27,8 @@ const Config = (() => {
         nomeEscola: '',         // Nome da escola
         salaLocal: '',          // Sala ou local físico
         codigoBNCC: '',         // Código BNCC (opcional)
-        descricaoBNCC: ''       // Descrição do componente BNCC (opcional)
+        descricaoBNCC: '',      // Descrição do componente BNCC (opcional)
+        nomeProfessor: ''       // Nome do professor (opcional)
     };
 
     // Generate UUID v4
@@ -75,6 +76,7 @@ const Config = (() => {
     const overlay = document.getElementById('config-overlay');
     const form = document.getElementById('config-form');
     const robotNameInput = document.getElementById('cfg-robot-name');
+    const professorNameInput = document.getElementById('cfg-professor-name');
     const webhookInput = document.getElementById('cfg-webhook');
     const tokenInput = document.getElementById('cfg-token');
     const paisInput = document.getElementById('cfg-pais');
@@ -108,6 +110,7 @@ const Config = (() => {
     // Populate form with current config
     function populateForm() {
         robotNameInput.value = current.robotName || 'Robô';
+        professorNameInput.value = current.nomeProfessor || '';
         webhookInput.value = current.webhookUrl || '';
         tokenInput.value = current.jwtToken || '';
         paisInput.value = current.pais || '';
@@ -251,6 +254,7 @@ const Config = (() => {
         // Gather config
         const selectedColor = document.querySelector('.color-btn.selected');
         current.robotName = robotNameInput.value.trim() || 'Robô';
+        current.nomeProfessor = professorNameInput.value.trim();
         current.webhookUrl = webhook;
         current.jwtToken = tokenInput.value.trim();
         current.pais = paisInput.value.trim();

@@ -69,6 +69,8 @@ const Webhook = (() => {
             mensagem: mensagem,
             modo: config.isKidsMode ? 'kids' : 'normal',
             assunto: config.topicDia ? config.topicDia.trim() : '',
+            // Teacher name
+            nome_professor: config.nomeProfessor || '',
             // BNCC fields
             codigo_bncc: config.codigoBNCC || '',
             descricao_bncc: config.descricaoBNCC || '',
@@ -97,6 +99,8 @@ const Webhook = (() => {
             tipo: 'movimento detectado',
             modo: config.isKidsMode ? 'kids' : 'normal',
             assunto: config.topicDia ? config.topicDia.trim() : '',
+            // Teacher name
+            nome_professor: config.nomeProfessor || '',
             // BNCC fields
             codigo_bncc: config.codigoBNCC || '',
             descricao_bncc: config.descricaoBNCC || '',
@@ -126,6 +130,8 @@ const Webhook = (() => {
             mensagem: 'Esta é uma mensagem de teste do robô.',
             modo: config.isKidsMode ? 'kids' : 'normal',
             assunto: config.topicDia || 'Assunto de teste',
+            // Teacher name
+            nome_professor: config.nomeProfessor || 'Maria Silva',
             // BNCC fields
             codigo_bncc: config.codigoBNCC || 'EF05MA01',
             descricao_bncc: config.descricaoBNCC || 'Resolver e elaborar problemas de adição e subtração',
