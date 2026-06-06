@@ -423,6 +423,8 @@ const RobotFace = (() => {
         const sleepZsContainer = document.getElementById('sleep-zs');
         if (sleepZsContainer) {
             sleepZsContainer.classList.remove('hidden');
+            sleepZsContainer.style.display = 'block';
+            console.log('Sleep Zs container display:', sleepZsContainer.style.display);
             // Spawn Z's periodically
             let zCount = 0;
             const zInterval = setInterval(() => {
@@ -435,18 +437,19 @@ const RobotFace = (() => {
                 text.setAttribute('class', 'sleep-z');
                 text.textContent = 'z';
                 
-                // Randomize position near the head (higher up)
-                const randomX = 150 + Math.random() * 500;
-                const randomY = 50 + Math.random() * 80;
+                // Position near the mouth (around x: 350-450, y: 380-420)
+                const randomX = 350 + Math.random() * 100;
+                const randomY = 380 + Math.random() * 40;
                 
                 text.setAttribute('x', randomX);
                 text.setAttribute('y', randomY);
-                text.setAttribute('font-size', '30');
+                text.setAttribute('font-size', '40');
                 text.setAttribute('font-weight', 'bold');
+                text.setAttribute('fill', '#FFFFFF');
                 
                 sleepZsContainer.appendChild(text);
                 
-                console.log('Sleep Z spawned at:', randomX, randomY);
+                console.log('Sleep Z spawned at:', randomX, randomY, 'Element:', text.outerHTML, 'Container children:', sleepZsContainer.children.length);
                 
                 // Remove after animation completes
                 setTimeout(() => {

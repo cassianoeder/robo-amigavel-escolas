@@ -954,14 +954,16 @@ body {
 /* Sleep Z's Effect */
 #sleep-zs {
     pointer-events: none;
+    z-index: 1000;
 }
 
 .sleep-z {
     animation: floatZ 3s forwards ease-out;
     font-family: 'Outfit', system-ui, sans-serif;
-    font-size: 30px;
+    font-size: 40px;
     font-weight: bold;
-    fill: rgba(255, 255, 255, 0.9);
+    fill: #FFFFFF;
+    opacity: 1;
 }
 
 @keyframes floatZ {
@@ -969,11 +971,11 @@ body {
         transform: translateY(0) rotate(0deg);
         opacity: 0;
     }
-    10% {
+    15% {
         opacity: 1;
     }
     100% {
-        transform: translateY(-150px) rotate(20deg);
+        transform: translateY(-200px) rotate(20deg);
         opacity: 0;
     }
 }
