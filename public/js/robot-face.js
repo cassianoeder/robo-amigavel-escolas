@@ -421,9 +421,11 @@ const RobotFace = (() => {
 
         // Show sleep Z's
         const sleepZsContainer = document.getElementById('sleep-zs');
+        console.log('setSleepy called, sleepZsContainer:', sleepZsContainer);
         if (sleepZsContainer) {
             sleepZsContainer.classList.remove('hidden');
             sleepZsContainer.classList.add('visible');
+            console.log('Sleep Zs classes after showing:', sleepZsContainer.className);
         }
 
         // Periodic yawns and peeks
