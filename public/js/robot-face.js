@@ -419,6 +419,50 @@ const RobotFace = (() => {
         lookCenter();
         startSnoring();
 
+        // Show sleep Z's
+        const sleepZsContainer = document.getElementById('sleep-zs');
+        if (sleepZsContainer) {
+            sleepZsContainer.classList.remove('hidden');
+            // Spawn Z's periodically
+            let zCount = 0;
+            const zInterval = setInterval(() => {
+                if (currentState !== 'sleepy') {
+                    clearInterval(zInterval);
+                    return;
+                }
+                
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute('class', 'sleep-z');
+                text.textContent = 'z';
+                
+                // Randomize position near the head
+                const randomX = 100 + Math.random() * 600;
+                const randomY = 100 + Math.random() * 50;
+                
+                text.setAttribute('x', randomX);
+                text.setAttribute('y', randomY);
+                
+                sleepZsContainer.appendChild(text);
+                
+                // Remove after animation completes
+                setTimeout(() => {
+                    if (text.parentNode) text.parentNode.removeChild(text);
+                }, 3000);
+                
+                zCount++;
+                if (zCount >= 3) {
+                    clearInterval(zInterval);
+                    zCount = 0;
+                    setTimeout(() => {
+                        if (currentState === 'sleepy') {
+                            // Start spawning Z's again
+                            setSleepy();
+                        }
+                    }, 2000);
+                }
+            }, 800);
+        }
+
         // Periodic yawns and peeks
         stopSleepy();
         let cycle = 0;
@@ -461,6 +505,12 @@ const RobotFace = (() => {
         if (yawnTimeout) {
             clearTimeout(yawnTimeout);
             yawnTimeout = null;
+        }
+        // Hide sleep Z's
+        const sleepZsContainer = document.getElementById('sleep-zs');
+        if (sleepZsContainer) {
+            sleepZsContainer.classList.add('hidden');
+            sleepZsContainer.innerHTML = '';
         }
     }
 
