@@ -912,7 +912,22 @@ body {
     transition: fill 2s ease !important;
 }
 
+.effect-cold .eyelid {
+    fill: #bce3ff !important;
+    transition: fill 2s ease !important;
+}
+
 /* Hot Effect (Sweat drops) */
+.effect-hot #face-bg {
+    fill: #ff6b6b !important;
+    transition: fill 2s ease !important;
+}
+
+.effect-hot .eyelid {
+    fill: #ff6b6b !important;
+    transition: fill 2s ease !important;
+}
+
 .effect-hot #sweat-drops {
     display: block !important;
 }
@@ -983,13 +998,6 @@ body {
     fill: var(--hat-color, #333);
 }
 
-.hat-logo-container {
-    /* Logo positioning */
-}
-
-#hat-logo {
-    /* Logo styling */
-}
 
 /* Hat configuration in modal */
 .checkbox-label {
