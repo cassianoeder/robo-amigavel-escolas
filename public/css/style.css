@@ -952,6 +952,10 @@ body {
 }
 
 /* Sleep Z's Effect */
+.sleep-zs {
+    z-index: 9999;
+}
+
 .sleep-zs.hidden {
     display: none;
 }
