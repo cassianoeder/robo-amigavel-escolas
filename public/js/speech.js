@@ -13,6 +13,8 @@ const Speech = (() => {
     let recognition = null;
     let isListening = false;
     let micEnabled = true;
+    let restartAttempts = 0;        // backoff counter for onerror retries
+    let restartTimer = null;        // pending restart timeout
 
     // Speech Synthesis (TTS)
     const synth = window.speechSynthesis;
@@ -148,9 +150,10 @@ const Speech = (() => {
                 console.error('Permissão de microfone negada.');
                 return;
             }
-            // Restart on recoverable errors
-            if (micEnabled && event.error !== 'aborted') {
-                setTimeout(() => startListening(), 500);
+            // Restart on recoverable errors (incl. 'aborted' que pode ser causado
+            // por getUserMedia concorrente com startVolumeAnalysis)
+            if (micEnabled) {
+                scheduleRestart();
             }
         };
 
@@ -158,12 +161,13 @@ const Speech = (() => {
             isListening = false;
             // Auto-restart if mic should be enabled
             if (micEnabled) {
-                setTimeout(() => startListening(), 300);
+                scheduleRestart(300);
             }
         };
 
         recognition.onstart = () => {
             isListening = true;
+            restartAttempts = 0; // sucesso: resetar contador
             currentSpeechMaxVolume = 0; // Reset at start of listening cycle
             if (onListeningStart) onListeningStart();
         };
@@ -185,6 +189,24 @@ const Speech = (() => {
         } catch (e) {
             console.warn('Recognition already started:', e.message);
         }
+    }
+
+    // Restart com backoff exponencial (cap em 8s) para evitar loop infinito
+    function scheduleRestart(baseDelay = 500) {
+        if (!micEnabled) return;
+        if (restartTimer) {
+            clearTimeout(restartTimer);
+            restartTimer = null;
+        }
+        restartAttempts++;
+        const delay = Math.min(baseDelay * Math.pow(1.5, Math.min(restartAttempts - 1, 5)), 8000);
+        if (restartAttempts > 12) {
+            console.warn('[STT] Muitas tentativas de restart (' + restartAttempts + '), aguardando 8s');
+        }
+        restartTimer = setTimeout(() => {
+            restartTimer = null;
+            startListening();
+        }, delay);
     }
 
     // ===== Fish STT =====
@@ -267,6 +289,11 @@ const Speech = (() => {
     function stopListening() {
         // Native Web Speech API
         if (!recognition) return;
+        // Cancela qualquer restart pendente
+        if (restartTimer) {
+            clearTimeout(restartTimer);
+            restartTimer = null;
+        }
         try {
             recognition.stop();
         } catch (e) {
@@ -282,6 +309,12 @@ const Speech = (() => {
     }
 
     function enableMic() {
+        micEnabled = false; // bloqueia startListening
+        if (restartTimer) {
+            clearTimeout(restartTimer);
+            restartTimer = null;
+        }
+        restartAttempts = 0;
         micEnabled = true;
         startListening();
     }
