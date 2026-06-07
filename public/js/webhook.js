@@ -5,6 +5,19 @@
 const Webhook = (() => {
     
     /**
+     * Classifica o período do dia baseado na hora
+     * @param {Date} date - Objeto Date (opcional, usa hora atual se não fornecido)
+     * @returns {string} 'madrugada' | 'manha' | 'tarde' | 'noite'
+     */
+    function getPeriodoDia(date = new Date()) {
+        const hora = date.getHours();
+        if (hora >= 0 && hora < 6) return 'madrugada';
+        if (hora >= 6 && hora < 12) return 'manha';
+        if (hora >= 12 && hora < 18) return 'tarde';
+        return 'noite';
+    }
+    
+    /**
      * Envia dados para o webhook n8n
      * @param {string} url - URL do webhook
      * @param {Object} body - Corpo da requisição
@@ -69,6 +82,8 @@ const Webhook = (() => {
             mensagem: mensagem,
             modo: config.isKidsMode ? 'kids' : 'normal',
             assunto: config.topicDia ? config.topicDia.trim() : '',
+            // Time period classification
+            periodo_dia: getPeriodoDia(now),
             // Teacher name
             nome_professor: config.nomeProfessor || '',
             // BNCC fields
@@ -108,6 +123,8 @@ const Webhook = (() => {
             tipo: 'movimento detectado',
             modo: config.isKidsMode ? 'kids' : 'normal',
             assunto: config.topicDia ? config.topicDia.trim() : '',
+            // Time period classification
+            periodo_dia: getPeriodoDia(now),
             // Teacher name
             nome_professor: config.nomeProfessor || '',
             // BNCC fields
@@ -148,6 +165,8 @@ const Webhook = (() => {
             mensagem: 'Esta é uma mensagem de teste do robô.',
             modo: config.isKidsMode ? 'kids' : 'normal',
             assunto: config.topicDia || 'Assunto de teste',
+            // Time period classification
+            periodo_dia: getPeriodoDia(now),
             // Teacher name
             nome_professor: config.nomeProfessor || 'Maria Silva',
             // BNCC fields
