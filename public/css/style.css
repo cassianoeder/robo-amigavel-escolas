@@ -1031,11 +1031,11 @@ body {
 /* Hat SVG elements */
 .robot-hat {
     transition: opacity 0.3s ease;
+    z-index: 1000;
 }
 
 .robot-hat.hidden {
-    opacity: 0;
-    pointer-events: none;
+    display: none;
 }
 
 .hat-base {

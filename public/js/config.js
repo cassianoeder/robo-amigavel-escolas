@@ -26,7 +26,10 @@ const Config = (() => {
         salaLocal: '',          // Sala ou local físico
         codigoBNCC: '',         // Código BNCC (opcional)
         descricaoBNCC: '',      // Descrição do componente BNCC (opcional)
-        nomeProfessor: ''       // Nome do professor (opcional)
+        nomeProfessor: '',      // Nome do professor (opcional)
+        nomeDiretor: '',        // Nome do diretor (opcional)
+        nomeRecepcionista: '',  // Nome do recepcionista (opcional)
+        nomeSecretario: ''      // Nome do secretária (opcional)
     };
 
     // Generate UUID v4
@@ -102,6 +105,9 @@ const Config = (() => {
     const topicInput = document.getElementById('cfg-topic');
     const bnccCodigoInput = document.getElementById('cfg-bncc-codigo');
     const bnccDescricaoInput = document.getElementById('cfg-bncc-descricao');
+    const diretorInput = document.getElementById('cfg-diretor');
+    const recepcionistaInput = document.getElementById('cfg-recepcionista');
+    const secretarioInput = document.getElementById('cfg-secretario');
     const clearTopicBtn = document.getElementById('btn-clear-topic');
     const testWebhookBtn = document.getElementById('btn-test-webhook');
 
@@ -116,6 +122,9 @@ const Config = (() => {
         cidadeInput.value = current.cidade || '';
         nomeEscolaInput.value = current.nomeEscola || '';
         salaLocalInput.value = current.salaLocal || '';
+        if (diretorInput) diretorInput.value = current.nomeDiretor || '';
+        if (recepcionistaInput) recepcionistaInput.value = current.nomeRecepcionista || '';
+        if (secretarioInput) secretarioInput.value = current.nomeSecretario || '';
         rateSlider.value = current.velocidadeFala;
         rateValue.textContent = current.velocidadeFala.toFixed(1);
         sleepSelect.value = current.timeoutSonolencia;
@@ -260,6 +269,9 @@ const Config = (() => {
         current.cidade = cidadeInput.value.trim();
         current.nomeEscola = nomeEscolaInput.value.trim();
         current.salaLocal = salaLocalInput.value.trim();
+        current.nomeDiretor = diretorInput ? diretorInput.value.trim() : '';
+        current.nomeRecepcionista = recepcionistaInput ? recepcionistaInput.value.trim() : '';
+        current.nomeSecretario = secretarioInput ? secretarioInput.value.trim() : '';
         current.corDestaque = selectedColor ? selectedColor.dataset.color : 'azul-escuro';
         current.vozIndex = parseInt(voiceSelect.value) || 0;
         current.velocidadeFala = parseFloat(rateSlider.value) || 1.0;

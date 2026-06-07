@@ -53,10 +53,19 @@ export async function POST(request) {
       salaLocal = '',
       codigoBNCC = '',
       descricaoBNCC = '',
+      nomeDiretor = '',
+      nomeRecepcionista = '',
+      nomeSecretario = '',
       hatEnabled = false,
       hatColor = '#333333',
       hatLogo = ''
     } = body;
+
+    // Sanitize string inputs (max 255 chars, remove potential script tags)
+    const sanitize = (str) => {
+      if (typeof str !== 'string') return '';
+      return str.substring(0, 255).replace(/<[^>]*>/g, '');
+    };
 
     // UPSERT (SQLite)
     await db.execute({
@@ -65,8 +74,9 @@ export async function POST(request) {
           user_id, webhookUrl, jwtToken, corDestaque, vozIndex, 
           velocidadeFala, timeoutSonolencia, sessaoId, isKidsMode, topicDia, volumeRobo,
           robotName, nomeProfessor, pais, estado, cidade, nomeEscola, salaLocal,
-          codigoBNCC, descricaoBNCC, hatEnabled, hatColor, hatLogo
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          codigoBNCC, descricaoBNCC, nomeDiretor, nomeRecepcionista, nomeSecretario,
+          hatEnabled, hatColor, hatLogo
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           webhookUrl = excluded.webhookUrl,
           jwtToken = excluded.jwtToken,
@@ -87,6 +97,9 @@ export async function POST(request) {
           salaLocal = excluded.salaLocal,
           codigoBNCC = excluded.codigoBNCC,
           descricaoBNCC = excluded.descricaoBNCC,
+          nomeDiretor = excluded.nomeDiretor,
+          nomeRecepcionista = excluded.nomeRecepcionista,
+          nomeSecretario = excluded.nomeSecretario,
           hatEnabled = excluded.hatEnabled,
           hatColor = excluded.hatColor,
           hatLogo = excluded.hatLogo,
@@ -96,7 +109,9 @@ export async function POST(request) {
         user.userId, webhookUrl, jwtToken, corDestaque, vozIndex,
         velocidadeFala, timeoutSonolencia, sessaoId, isKidsMode ? 1 : 0, topicDia, volumeRobo,
         robotName, nomeProfessor, pais, estado, cidade, nomeEscola, salaLocal,
-        codigoBNCC, descricaoBNCC, hatEnabled ? 1 : 0, hatColor, hatLogo
+        codigoBNCC, descricaoBNCC,
+        sanitize(nomeDiretor), sanitize(nomeRecepcionista), sanitize(nomeSecretario),
+        hatEnabled ? 1 : 0, hatColor, hatLogo
       ]
     });
 

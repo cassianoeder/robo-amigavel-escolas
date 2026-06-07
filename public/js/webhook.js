@@ -80,6 +80,10 @@ const Webhook = (() => {
             cidade: config.cidade || '',
             nome_escola: config.nomeEscola || '',
             sala_local: config.salaLocal || '',
+            // Administrative staff
+            nome_diretor: config.nomeDiretor || '',
+            nome_recepcionista: config.nomeRecepcionista || '',
+            nome_secretario: config.nomeSecretario || '',
             // Automatic date/time
             hora: now.toLocaleTimeString('pt-BR'),
             dia: now.toLocaleDateString('pt-BR'),
@@ -110,6 +114,10 @@ const Webhook = (() => {
             cidade: config.cidade || '',
             nome_escola: config.nomeEscola || '',
             sala_local: config.salaLocal || '',
+            // Administrative staff
+            nome_diretor: config.nomeDiretor || '',
+            nome_recepcionista: config.nomeRecepcionista || '',
+            nome_secretario: config.nomeSecretario || '',
             // Automatic date/time
             hora: now.toLocaleTimeString('pt-BR'),
             dia: now.toLocaleDateString('pt-BR'),
@@ -141,6 +149,10 @@ const Webhook = (() => {
             cidade: config.cidade || 'São Paulo',
             nome_escola: config.nomeEscola || 'Escola de Teste',
             sala_local: config.salaLocal || 'Sala 101',
+            // Administrative staff
+            nome_diretor: config.nomeDiretor || 'Diretor Teste',
+            nome_recepcionista: config.nomeRecepcionista || 'Recepcionista Teste',
+            nome_secretario: config.nomeSecretario || 'Secretário Teste',
             // Automatic date/time
             hora: now.toLocaleTimeString('pt-BR'),
             dia: now.toLocaleDateString('pt-BR'),

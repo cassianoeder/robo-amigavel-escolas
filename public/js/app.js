@@ -215,7 +215,12 @@ const App = (() => {
         const hat = document.getElementById('robot-hat');
         const hatLogoContainer = document.getElementById('hat-logo-container');
         
-        if (!hat) return;
+        if (!hat) {
+            console.warn('[Hat] Elemento robot-hat não encontrado');
+            return;
+        }
+        
+        console.log('[Hat] Aplicando config:', { hatEnabled: cfg.hatEnabled, hatColor: cfg.hatColor, hasLogo: !!cfg.hatLogo });
         
         // Show/hide hat
         if (cfg.hatEnabled) {
@@ -231,16 +236,32 @@ const App = (() => {
                 if (cfg.hatLogo) {
                     const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
                     image.setAttribute('id', 'hat-logo');
-                    image.setAttribute('href', cfg.hatLogo);
+                    image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', cfg.hatLogo);
                     image.setAttribute('x', '320');
                     image.setAttribute('y', '65');
                     image.setAttribute('width', '160');
                     image.setAttribute('height', '40');
                     hatLogoContainer.appendChild(image);
+                    console.log('[Hat] Logo adicionado ao boné');
+                } else {
+                    console.log('[Hat] Nenhum logo especificado');
                 }
+            } else {
+                console.warn('[Hat] Container de logo não encontrado');
             }
         } else {
             hat.classList.add('hidden');
+            console.log('[Hat] Boné ocultado');
+        }
+        
+        // Force browser to re-render the SVG
+        if (hat && hat.parentNode) {
+            const svgElement = hat.closest('svg');
+            if (svgElement) {
+                svgElement.style.display = 'none';
+                svgElement.offsetHeight; // trigger reflow
+                svgElement.style.display = '';
+            }
         }
     }
 
@@ -251,8 +272,10 @@ const App = (() => {
         // Show robot face
         robotContainer.classList.remove('hidden');
 
-        // Apply hat configuration
-        applyHatConfig(cfg);
+        // Apply hat configuration (with small delay to ensure SVG is rendered)
+        setTimeout(() => {
+            applyHatConfig(cfg);
+        }, 100);
 
         // Request permissions
         const micOk = await Speech.requestMicPermission();
@@ -398,7 +421,7 @@ const App = (() => {
             console.log('[Robô] Configuração atualizada');
             document.body.setAttribute('data-theme', cfg.corDestaque);
             // Apply hat configuration
-            applyHatConfig(config);
+            applyHatConfig(cfg);
         }
     });
 
