@@ -15,7 +15,7 @@ export async function GET() {
     });
 
     if (result.rows.length === 0) {
-      return NextResponse.json({}); // return empty config, frontend uses defaults
+      return NextResponse.json({});
     }
 
     return NextResponse.json(result.rows[0]);
@@ -33,12 +33,6 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    console.log('=== BACKEND RECEIVED ===');
-    console.log('userId:', user.userId);
-    console.log('body keys:', Object.keys(body));
-    console.log('topicDia:', body.topicDia);
-    console.log('avisosGerais:', body.avisosGerais);
-    console.log('eventosHoje:', body.eventosHoje);
     
     const {
       webhookUrl = '',
@@ -74,19 +68,16 @@ export async function POST(request) {
       hatLogo = ''
     } = body;
 
-    // Sanitize string inputs (max 255 chars, remove potential script tags)
     const sanitize = (str) => {
       if (typeof str !== 'string') return '';
       return str.substring(0, 255).replace(/<[^>]*>/g, '');
     };
 
-    // Sanitize for larger text fields (max 1000 chars)
     const sanitizeLarge = (str) => {
       if (typeof str !== 'string') return '';
       return str.substring(0, 1000).replace(/<[^>]*>/g, '');
     };
 
-    // UPSERT (SQLite)
     await db.execute({
       sql: `
         INSERT INTO robot_configs (
@@ -148,6 +139,6 @@ export async function POST(request) {
     return NextResponse.json({ message: 'Configuração salva com sucesso' });
   } catch (error) {
     console.error('Save config error:', error);
-    return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno no servidor: ' + error.message }, { status: 500 });
   }
 }

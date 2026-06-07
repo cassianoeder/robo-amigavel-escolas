@@ -63,24 +63,14 @@ const Config = (() => {
 
     // Save to server API
     async function save(config) {
-        console.log('=== SAVE FUNCTION ===');
-        console.log('Config to save:', JSON.stringify(config));
         try {
-            const response = await fetch('/api/config', {
+            await fetch('/api/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
             });
-            console.log('Response status:', response.status);
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Error response:', errorData);
-            } else {
-                const successData = await response.json();
-                console.log('Success response:', successData);
-            }
         } catch (e) {
-            console.error('Fetch error:', e);
+            console.warn('Erro ao salvar config na API:', e);
         }
     }
 
