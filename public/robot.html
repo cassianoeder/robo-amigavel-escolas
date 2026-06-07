@@ -22,6 +22,12 @@
             </div>
 
             <form id="config-form" class="modal-body" autocomplete="off">
+                <!-- ===== SEÇÃO: IDENTIDADE DO ROBÔ ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">🤖</span>
+                    <h3 class="section-title">Identidade do Robô</h3>
+                </div>
+
                 <!-- Robot Name -->
                 <div class="field-group">
                     <label for="cfg-robot-name">Nome do Robô <span class="required">*</span></label>
@@ -34,9 +40,10 @@
                     <input type="text" id="cfg-professor-name" placeholder="Ex: Maria Silva">
                 </div>
 
-                <!-- Administrative Staff -->
-                <div class="field-group full-width">
-                    <label>Pessoal Administrativo <span class="optional">(opcional)</span></label>
+                <!-- ===== SEÇÃO: EQUIPE DA ESCOLA ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">👥</span>
+                    <h3 class="section-title">Equipe da Escola <span class="optional">(opcional)</span></h3>
                 </div>
 
                 <div class="field-group">
@@ -49,26 +56,15 @@
                     <input type="text" id="cfg-recepcionista" maxlength="100" placeholder="Ex: Ana Santos">
                 </div>
 
-                <div class="field-group">
+                <div class="field-group full-width">
                     <label for="cfg-secretario">Secretário(a)</label>
                     <input type="text" id="cfg-secretario" maxlength="100" placeholder="Ex: Pedro Oliveira">
                 </div>
 
-                <!-- Webhook URL -->
-                <div class="field-group">
-                    <label for="cfg-webhook">URL do Webhook n8n <span class="required">*</span></label>
-                    <input type="url" id="cfg-webhook" placeholder="https://seu-n8n.com/webhook/..." required>
-                </div>
-
-                <!-- JWT Token -->
-                <div class="field-group">
-                    <label for="cfg-token">Token JWT Bearer <span class="optional">(opcional)</span></label>
-                    <input type="text" id="cfg-token" placeholder="eyJhbGciOiJIUzI1NiIs...">
-                </div>
-
-                <!-- Location Section -->
-                <div class="field-group full-width">
-                    <label>Localização</label>
+                <!-- ===== SEÇÃO: LOCALIZAÇÃO ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">📍</span>
+                    <h3 class="section-title">Localização <span class="optional">(opcional)</span></h3>
                 </div>
 
                 <div class="field-group">
@@ -91,9 +87,33 @@
                     <input type="text" id="cfg-nome-escola" placeholder="Escola Municipal">
                 </div>
 
-                <div class="field-group">
+                <div class="field-group full-width">
                     <label for="cfg-sala-local">Sala ou Local Físico</label>
                     <input type="text" id="cfg-sala-local" placeholder="Sala 101 ou Recepção">
+                </div>
+
+                <!-- ===== SEÇÃO: INTEGRAÇÃO N8N ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">🔌</span>
+                    <h3 class="section-title">Integração n8n</h3>
+                </div>
+
+                <!-- Webhook URL -->
+                <div class="field-group full-width">
+                    <label for="cfg-webhook">URL do Webhook n8n <span class="required">*</span></label>
+                    <input type="url" id="cfg-webhook" placeholder="https://seu-n8n.com/webhook/..." required>
+                </div>
+
+                <!-- JWT Token -->
+                <div class="field-group full-width">
+                    <label for="cfg-token">Token JWT Bearer <span class="optional">(opcional)</span></label>
+                    <input type="text" id="cfg-token" placeholder="eyJhbGciOiJIUzI1NiIs...">
+                </div>
+
+                <!-- ===== SEÇÃO: APARÊNCIA ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">🎨</span>
+                    <h3 class="section-title">Aparência</h3>
                 </div>
 
                 <!-- Accent Color -->
@@ -118,26 +138,6 @@
                     </div>
                 </div>
 
-                <!-- Voice -->
-                <div class="field-group full-width">
-                    <label for="cfg-voice">Voz</label>
-                    <select id="cfg-voice">
-                        <option value="">Carregando vozes...</option>
-                    </select>
-                </div>
-
-                <!-- Speech Rate -->
-                <div class="field-group">
-                    <label for="cfg-rate">Velocidade da fala: <span id="rate-value">1.0</span>x</label>
-                    <input type="range" id="cfg-rate" min="0.5" max="2" step="0.1" value="1.0">
-                </div>
-
-                <!-- Speech Volume -->
-                <div class="field-group">
-                    <label for="cfg-volume">Volume do Robô: <span id="volume-value">100</span>%</label>
-                    <input type="range" id="cfg-volume" min="0" max="130" step="5" value="100">
-                </div>
-
                 <!-- Hat Configuration -->
                 <div class="field-group full-width">
                     <label class="checkbox-label">
@@ -159,6 +159,32 @@
                         <button type="button" id="btn-remove-logo" class="btn-remove-logo hidden">Remover Logo</button>
                     </div>
                     <small class="field-hint">Imagem quadrada recomendada. Máximo 500KB.</small>
+                </div>
+
+                <!-- ===== SEÇÃO: VOZ E COMPORTAMENTO ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">🔊</span>
+                    <h3 class="section-title">Voz e Comportamento</h3>
+                </div>
+
+                <!-- Voice -->
+                <div class="field-group full-width">
+                    <label for="cfg-voice">Voz</label>
+                    <select id="cfg-voice">
+                        <option value="">Carregando vozes...</option>
+                    </select>
+                </div>
+
+                <!-- Speech Rate -->
+                <div class="field-group">
+                    <label for="cfg-rate">Velocidade da fala: <span id="rate-value">1.0</span>x</label>
+                    <input type="range" id="cfg-rate" min="0.5" max="2" step="0.1" value="1.0">
+                </div>
+
+                <!-- Speech Volume -->
+                <div class="field-group">
+                    <label for="cfg-volume">Volume do Robô: <span id="volume-value">100</span>%</label>
+                    <input type="range" id="cfg-volume" min="0" max="130" step="5" value="100">
                 </div>
 
                 <!-- Sleepiness Timeout -->
@@ -241,25 +267,16 @@
             </div>
 
             <form id="daily-topic-form" class="modal-body" autocomplete="off">
+                <!-- ===== SEÇÃO: CONTEÚDO DA AULA ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">📖</span>
+                    <h3 class="section-title">Conteúdo da Aula</h3>
+                </div>
+
                 <!-- Topic Input -->
-                <div class="field-group">
+                <div class="field-group full-width">
                     <label for="cfg-topic">Assunto do Dia <span class="optional">(máx. 70 caracteres)</span></label>
                     <input type="text" id="cfg-topic" maxlength="70" placeholder="Ex: Sistema Solar, Frações, Dinossauros...">
-                </div>
-
-                <!-- BNCC Section -->
-                <div class="field-group">
-                    <label>BNCC (Base Nacional Comum Curricular) <span class="optional">(opcional)</span></label>
-                </div>
-
-                <div class="field-group">
-                    <label for="cfg-bncc-codigo">Código BNCC</label>
-                    <input type="text" id="cfg-bncc-codigo" placeholder="Ex: EF05MA01">
-                </div>
-
-                <div class="field-group">
-                    <label for="cfg-bncc-descricao">Descrição do Componente</label>
-                    <input type="text" id="cfg-bncc-descricao" maxlength="200" placeholder="Ex: Resolver e elaborar problemas de adição e subtração">
                 </div>
 
                 <!-- Pedagogical Fields -->
@@ -278,23 +295,45 @@
                     </select>
                 </div>
 
-                <div class="field-group">
+                <div class="field-group full-width">
                     <label for="cfg-objetivo-aula">Objetivo da Aula <span class="optional">(opcional)</span></label>
                     <textarea id="cfg-objetivo-aula" maxlength="255" rows="2" placeholder="Ex: Compreender frações equivalentes"></textarea>
                 </div>
 
+                <!-- ===== SEÇÃO: BNCC ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">📋</span>
+                    <h3 class="section-title">BNCC <span class="optional">(opcional)</span></h3>
+                </div>
+
                 <div class="field-group">
-                    <label for="cfg-proximos-eventos">Próximos Eventos <span class="optional">(opcional)</span></label>
+                    <label for="cfg-bncc-codigo">Código BNCC</label>
+                    <input type="text" id="cfg-bncc-codigo" placeholder="Ex: EF05MA01">
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-bncc-descricao">Descrição do Componente</label>
+                    <input type="text" id="cfg-bncc-descricao" maxlength="200" placeholder="Ex: Resolver e elaborar problemas">
+                </div>
+
+                <!-- ===== SEÇÃO: AVISOS E EVENTOS ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">📢</span>
+                    <h3 class="section-title">Avisos e Eventos <span class="optional">(opcional)</span></h3>
+                </div>
+
+                <div class="field-group full-width">
+                    <label for="cfg-proximos-eventos">Próximos Eventos</label>
                     <textarea id="cfg-proximos-eventos" maxlength="1000" rows="4" placeholder="Ex:&#10;Festa Junina - 15/06 - Gincana e quadrilha&#10;Copa Escolar - 20/06 - Partidas de futebol&#10;Feira de Ciências - 25/06 - Apresentação de projetos"></textarea>
                 </div>
 
-                <div class="field-group">
-                    <label for="cfg-eventos-hoje">Eventos de Hoje <span class="optional">(opcional)</span></label>
+                <div class="field-group full-width">
+                    <label for="cfg-eventos-hoje">Eventos de Hoje</label>
                     <textarea id="cfg-eventos-hoje" maxlength="1000" rows="3" placeholder="Ex:&#10;8h - Reunião pedagógica&#10;14h - Apresentação cultural&#10;16h30 - Saída antecipada"></textarea>
                 </div>
 
-                <div class="field-group">
-                    <label for="cfg-avisos-gerais">Avisos Gerais <span class="optional">(opcional)</span></label>
+                <div class="field-group full-width">
+                    <label for="cfg-avisos-gerais">Avisos Gerais</label>
                     <textarea id="cfg-avisos-gerais" maxlength="1000" rows="3" placeholder="Ex:&#10;Trazer autorização para passeio&#10;Prazo de matrícula até 30/06&#10;Reunião de pais na próxima sexta"></textarea>
                 </div>
 

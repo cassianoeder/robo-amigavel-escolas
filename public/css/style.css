@@ -176,6 +176,45 @@ body {
     grid-column: 1 / -1;
 }
 
+/* ===== SECTION HEADERS (Modal Organizers) ===== */
+.section-header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    margin-bottom: 4px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--input-border);
+    position: relative;
+}
+
+.section-header:first-of-type {
+    margin-top: 4px;
+}
+
+.section-header .section-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+
+.section-header .section-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: none;
+    letter-spacing: 0;
+    flex: 1;
+}
+
+.section-header .section-title .optional {
+    font-weight: 400;
+    font-size: 0.78rem;
+    margin-left: 6px;
+}
+
 .field-group label {
     display: block;
     font-size: 0.82rem;
@@ -219,6 +258,61 @@ body {
 
 .field-group input::placeholder {
     color: rgba(255,255,255,0.2);
+}
+
+/* ===== TEXTAREA (Enhanced Styling) ===== */
+.field-group textarea {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 320px;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+    display: block;
+}
+
+.field-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.field-group textarea::placeholder {
+    color: rgba(255,255,255,0.2);
+    line-height: 1.5;
+    white-space: pre-line;
+}
+
+/* Textarea size variants */
+.field-group textarea[size="small"] { min-height: 60px; }
+.field-group textarea[size="medium"] { min-height: 100px; }
+.field-group textarea[size="large"] { min-height: 140px; }
+
+/* Custom scrollbar inside textarea */
+.field-group textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+.field-group textarea::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+}
+
+.field-group textarea::-webkit-scrollbar-thumb {
+    background: var(--input-border);
+    border-radius: 4px;
+}
+
+.field-group textarea::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
 }
 
 /* Range slider */
