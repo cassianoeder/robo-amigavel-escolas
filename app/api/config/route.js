@@ -33,6 +33,12 @@ export async function POST(request) {
     }
 
     const body = await request.json();
+    console.log('=== BACKEND RECEIVED ===');
+    console.log('userId:', user.userId);
+    console.log('body keys:', Object.keys(body));
+    console.log('topicDia:', body.topicDia);
+    console.log('avisosGerais:', body.avisosGerais);
+    console.log('eventosHoje:', body.eventosHoje);
     
     const {
       webhookUrl = '',
