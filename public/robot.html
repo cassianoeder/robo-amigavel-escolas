@@ -197,6 +197,28 @@
                     </select>
                 </div>
 
+                <!-- ===== SEÇÃO: FISH.AUDIO (OPCIONAL, PAGO) ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">🐟</span>
+                    <h3 class="section-title">Fish.audio (opcional, pago)</h3>
+                </div>
+
+                <div class="field-group full-width">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="cfg-fish-stt-enabled">
+                        <span>Usar Fish.audio para reconhecimento de voz (STT)</span>
+                    </label>
+                    <small class="field-hint">Resolve problemas de STT em tablets Android. Requer API key Fish configurada no n8n. <span id="fish-cap-hint"></span></small>
+                </div>
+
+                <div class="field-group full-width">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="cfg-fish-tts-enabled">
+                        <span>Usar Fish.audio para síntese de voz neural (TTS)</span>
+                    </label>
+                    <small class="field-hint">Voz mais natural que a do navegador. Requer fish_voice_id configurado no n8n.</small>
+                </div>
+
                 <!-- Payload Manual -->
                 <div class="field-group full-width">
                     <details class="payload-manual">
@@ -520,6 +542,8 @@
     <script src="/js/speech.js"></script>
     <script src="/js/motion.js"></script>
     <script src="/js/webhook.js"></script>
+    <script src="/js/fish-capability.js"></script>
+    <script src="/js/audio-capture.js"></script>
     <script src="/js/app.js"></script>
 </body>
 </html>

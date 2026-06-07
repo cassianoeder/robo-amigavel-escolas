@@ -1,0 +1,175 @@
+{
+  "name": "Robô Educacional — Fish.audio (STT + TTS)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fish-audio",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-fish",
+      "name": "Webhook Fish",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": ""
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "cond-stt",
+                    "leftValue": "={{ $json.body.tipo }}",
+                    "rightValue": "fish-stt",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "stt"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "cond-tts",
+                    "leftValue": "={{ $json.body.tipo }}",
+                    "rightValue": "fish-tts",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "tts"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "switch-tipo",
+      "name": "Switch (tipo)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "operation": "speechToText",
+        "audioBinaryPropertyName": "audio",
+        "options": {
+          "language": "pt"
+        }
+      },
+      "id": "fish-asr",
+      "name": "Fish Audio: Speech to Text",
+      "type": "n8n-nodes-fishaudio.fishAudio",
+      "typeVersion": 1,
+      "position": [720, 200],
+      "credentials": {
+        "fishAudioApi": {
+          "id": "",
+          "name": "Fish Audio API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "textToSpeech",
+        "text": "={{ $json.body.text }}",
+        "options": {
+          "format": "mp3",
+          "mp3Bitrate": 128
+        }
+      },
+      "id": "fish-tts",
+      "name": "Fish Audio: Text to Speech",
+      "type": "n8n-nodes-fishaudio.fishAudio",
+      "typeVersion": 1,
+      "position": [720, 400],
+      "credentials": {
+        "fishAudioApi": {
+          "id": "",
+          "name": "Fish Audio API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"text\": {{ JSON.stringify($json.text || $json.transcript || '') }}\n}",
+        "options": {}
+      },
+      "id": "respond-stt",
+      "name": "Respond (STT)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [960, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"text\": {{ JSON.stringify($('Webhook Fish').item.json.body.text) }},\n  \"audio_url\": {{ JSON.stringify($json.audio || '') }}\n}",
+        "options": {}
+      },
+      "id": "respond-tts",
+      "name": "Respond (TTS)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [960, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Fish": {
+      "main": [[{ "node": "Switch (tipo)", "type": "main", "index": 0 }]]
+    },
+    "Switch (tipo)": {
+      "main": [
+        [{ "node": "Fish Audio: Speech to Text", "type": "main", "index": 0 }],
+        [{ "node": "Fish Audio: Text to Speech", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fish Audio: Speech to Text": {
+      "main": [[{ "node": "Respond (STT)", "type": "main", "index": 0 }]]
+    },
+    "Fish Audio: Text to Speech": {
+      "main": [[{ "node": "Respond (TTS)", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "fish-audio"
+    },
+    {
+      "name": "opcional"
+    }
+  ],
+  "active": false,
+  "pinData": {}
+}

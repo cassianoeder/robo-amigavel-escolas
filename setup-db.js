@@ -58,6 +58,20 @@ async function setupDb() {
       );
     `);
 
+    console.log('Adding fish_stt_enabled column (idempotent)...');
+    try {
+      await client.execute(`ALTER TABLE robot_configs ADD COLUMN fish_stt_enabled INTEGER DEFAULT 0`);
+    } catch (e) {
+      console.log('  fish_stt_enabled already exists or error (safe to ignore):', e.message);
+    }
+
+    console.log('Adding fish_tts_enabled column (idempotent)...');
+    try {
+      await client.execute(`ALTER TABLE robot_configs ADD COLUMN fish_tts_enabled INTEGER DEFAULT 0`);
+    } catch (e) {
+      console.log('  fish_tts_enabled already exists or error (safe to ignore):', e.message);
+    }
+
     console.log('Database setup complete!');
   } catch (err) {
     console.error('Error setting up database:', err);

@@ -35,7 +35,9 @@ const Config = (() => {
         nomeProfessor: '',      // Nome do professor (opcional)
         nomeDiretor: '',        // Nome do diretor (opcional)
         nomeRecepcionista: '',  // Nome do recepcionista (opcional)
-        nomeSecretario: ''      // Nome do secretária (opcional)
+        nomeSecretario: '',     // Nome do secretária (opcional)
+        fishSttEnabled: false,  // Fish STT (opcional, pago)
+        fishTtsEnabled: false   // Fish TTS (opcional, pago)
     };
 
     // Generate UUID v4
@@ -102,6 +104,8 @@ const Config = (() => {
     const hatColorInput = document.getElementById('cfg-hat-color');
     const hatLogoInput = document.getElementById('cfg-hat-logo');
     const hatLogoPreview = document.getElementById('hat-logo-preview');
+    const fishSttCheckbox = document.getElementById('cfg-fish-stt-enabled');
+    const fishTtsCheckbox = document.getElementById('cfg-fish-tts-enabled');
     const settingsBtn = document.getElementById('btn-settings');
     const kidsBtn = document.getElementById('btn-kids-mode');
     const topicBtn = document.getElementById('btn-daily-topic');
@@ -151,6 +155,25 @@ const Config = (() => {
         if (hatLogoPreview && current.hatLogo) {
             hatLogoPreview.src = current.hatLogo;
             hatLogoPreview.classList.remove('hidden');
+        }
+
+        // Fish toggles (desabilitar se capability for falsa)
+        const fishCapOk = !!window.__fishCapabilityOk;
+        const capHint = document.getElementById('fish-cap-hint');
+        if (capHint) {
+            capHint.textContent = fishCapOk
+                ? '(navegador compatível)'
+                : '(seu navegador não suporta gravação de áudio)';
+            capHint.style.color = fishCapOk ? '#22CC10' : '#FF6B35';
+        }
+        if (fishSttCheckbox) {
+            fishSttCheckbox.checked = !!current.fishSttEnabled;
+            fishSttCheckbox.disabled = !fishCapOk;
+        }
+        if (fishTtsCheckbox) {
+            fishTtsCheckbox.checked = !!current.fishTtsEnabled;
+            // TTS não precisa de MediaRecorder, só de <audio>
+            fishTtsCheckbox.disabled = false;
         }
         // Enable/disable test button based on webhook
         if (testWebhookBtn) {
@@ -322,6 +345,8 @@ const Config = (() => {
         current.hatEnabled = hatEnabledCheckbox ? hatEnabledCheckbox.checked : false;
         current.hatColor = hatColorInput ? hatColorInput.value : '#333333';
         current.hatLogo = hatLogoInput ? hatLogoInput.value : '';
+        current.fishSttEnabled = !!(fishSttCheckbox && fishSttCheckbox.checked);
+        current.fishTtsEnabled = !!(fishTtsCheckbox && fishTtsCheckbox.checked);
 
         // Ensure session ID
         if (!current.sessaoId) {

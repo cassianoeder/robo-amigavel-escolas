@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# test artifacts and validation outputs (not part of the product)
+/docs/_artifacts/
+
 # vercel
 .vercel
 

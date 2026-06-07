@@ -28,6 +28,21 @@ const Speech = (() => {
     // Dynamic Volume Gating
     let currentSpeechMaxVolume = 0;
 
+    // ===== Fish.audio (opcional) =====
+    let fishSttEnabled = false;
+    let fishTtsEnabled = false;
+    let sttEngine = 'native'; // 'native' | 'fish' — runtime
+
+    function configureFish(sttEnabled, ttsEnabled) {
+        const nextStt = !!sttEnabled;
+        const nextTts = !!ttsEnabled;
+        if (fishSttEnabled !== nextStt || fishTtsEnabled !== nextTts) {
+            console.log(`[Speech] configureFish: STT ${fishSttEnabled}→${nextStt}, TTS ${fishTtsEnabled}→${nextTts}`);
+        }
+        fishSttEnabled = nextStt;
+        fishTtsEnabled = nextTts;
+    }
+
     // ===== STT Engine Detection & Initialization =====
 
     // Detect which STT engine to use (native Web Speech API only)
@@ -46,9 +61,22 @@ const Speech = (() => {
     let activeEngine = 'native';
 
     async function init() {
+        const cfg = (typeof Config !== 'undefined' && Config.current) ? Config.current : null;
+        const wantsFish = !!(cfg && cfg.fishSttEnabled);
+
+        if (wantsFish && window.__fishCapabilityOk) {
+            sttEngine = 'fish';
+            activeEngine = 'fish';
+            console.log('[STT] Engine selecionado: Fish.audio (opcional, capability OK)');
+            return true;
+        }
+
+        if (wantsFish && !window.__fishCapabilityOk) {
+            console.warn('[STT] Fish solicitado mas capability insuficiente, usando Web Speech API nativo como fallback');
+        }
+
         activeEngine = detectSTTEngine();
 
-        // Native Web Speech API
         if (window.SpeechRecognition || window.webkitSpeechRecognition) {
             return initRecognition();
         }
@@ -144,15 +172,95 @@ const Speech = (() => {
     }
 
     function startListening() {
-        // Native Web Speech API
-        if (!recognition || !micEnabled) return;
-        if (isListening) return;
+        if (!micEnabled) return;
+
+        if (sttEngine === 'fish') {
+            return startFishListening();
+        }
+
+        if (!recognition || isListening) return;
 
         try {
             recognition.start();
         } catch (e) {
-            // Already started, ignore
             console.warn('Recognition already started:', e.message);
+        }
+    }
+
+    // ===== Fish STT =====
+    async function startFishListening() {
+        if (!window.AudioCapture) {
+            console.error('[Speech] AudioCapture não carregado, fallback para native');
+            sttEngine = 'native';
+            initRecognition();
+            return startListening();
+        }
+        if (AudioCapture.isRecording()) return;
+
+        const ok = await AudioCapture.start(async (blob) => {
+            if (!blob) {
+                console.warn('[Speech Fish STT] Blob vazio, ignorando');
+                if (onListeningStop) onListeningStop();
+                return;
+            }
+            try {
+                const text = await transcribeViaFish(blob);
+                if (text && onTranscript) onTranscript(text);
+            } catch (e) {
+                console.error('[Speech Fish STT] Falhou, fallback para Web Speech API:', e);
+                sttEngine = 'native';
+                initRecognition();
+            } finally {
+                if (onListeningStop) onListeningStop();
+            }
+        });
+
+        if (!ok) {
+            console.warn('[Speech] AudioCapture.start falhou, fallback para Web Speech API');
+            sttEngine = 'native';
+            if (!recognition) initRecognition();
+            return startListening();
+        }
+    }
+
+    async function transcribeViaFish(audioBlob) {
+        const cfg = (typeof Config !== 'undefined' && Config.current) ? Config.current : null;
+        if (!cfg || !cfg.webhookUrl) {
+            throw new Error('Webhook não configurado para Fish STT');
+        }
+
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+        formData.append('targetUrl', cfg.webhookUrl);
+        formData.append('token', cfg.jwtToken || '');
+        formData.append('tipo', 'fish-stt');
+        formData.append('metadata', JSON.stringify({
+            robot_name: cfg.robotName,
+            sessao_id: cfg.sessaoId,
+            modo: cfg.isKidsMode ? 'kids' : 'normal'
+        }));
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        try {
+            const response = await fetch('/api/webhook-audio', {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            const text = data.text || data.transcript || data.texto || '';
+            return String(text).trim();
+        } catch (e) {
+            clearTimeout(timeoutId);
+            throw e;
         }
     }
 
@@ -257,6 +365,16 @@ const Speech = (() => {
     }
 
     function speak(text, voiceIndex = 0, rate = 1.0) {
+        if (fishTtsEnabled) {
+            return speakViaFish(text).catch((e) => {
+                console.warn('[Speech] Fish TTS falhou, usando Web Speech API como fallback:', e.message);
+                return speakNative(text, voiceIndex, rate);
+            });
+        }
+        return speakNative(text, voiceIndex, rate);
+    }
+
+    function speakNative(text, voiceIndex = 0, rate = 1.0) {
         return new Promise((resolve) => {
             // Cancel any ongoing speech
             synth.cancel();
@@ -313,6 +431,83 @@ const Speech = (() => {
                 }, 3000);
             }
         });
+    }
+
+    // ===== Fish TTS =====
+    async function speakViaFish(text) {
+        const cfg = (typeof Config !== 'undefined' && Config.current) ? Config.current : null;
+        if (!cfg || !cfg.webhookUrl) {
+            throw new Error('Webhook não configurado para Fish TTS');
+        }
+
+        const cleanedText = cleanTextForTTS(text);
+
+        const formData = new FormData();
+        formData.append('text', cleanedText);
+        formData.append('targetUrl', cfg.webhookUrl);
+        formData.append('token', cfg.jwtToken || '');
+        formData.append('tipo', 'fish-tts');
+        formData.append('metadata', JSON.stringify({
+            robot_name: cfg.robotName
+        }));
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const response = await fetch('/api/webhook-audio', {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const audioUrl = data.audio_url || data.audioUrl;
+        const audioBase64 = data.audio_base64 || data.audioBase64;
+        const plainText = data.text || text;
+
+        if (onSpeechStart) onSpeechStart();
+
+        return new Promise((resolve) => {
+            let audio;
+            if (audioUrl) {
+                audio = new Audio(audioUrl);
+            } else if (audioBase64) {
+                const blob = base64ToBlob(audioBase64, 'audio/mp3');
+                audio = new Audio(URL.createObjectURL(blob));
+            } else {
+                throw new Error('Resposta sem audio_url nem audio_base64');
+            }
+
+            audio.onended = () => {
+                if (audio.src.startsWith('blob:')) URL.revokeObjectURL(audio.src);
+                if (onSpeechEnd) onSpeechEnd();
+                resolve();
+            };
+            audio.onerror = () => {
+                if (audio.src.startsWith('blob:')) URL.revokeObjectURL(audio.src);
+                console.error('[Speech Fish TTS] Audio playback falhou');
+                if (onSpeechEnd) onSpeechEnd();
+                resolve();
+            };
+            audio.play().catch((e) => {
+                console.error('[Speech Fish TTS] audio.play() falhou:', e.message);
+                if (audio.src.startsWith('blob:')) URL.revokeObjectURL(audio.src);
+                if (onSpeechEnd) onSpeechEnd();
+                resolve();
+            });
+        });
+    }
+
+    function base64ToBlob(base64, mime) {
+        const bin = atob(base64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new Blob([bytes], { type: mime });
     }
 
     function cancelSpeech() {
@@ -424,6 +619,9 @@ const Speech = (() => {
             return isListening;
         },
         get isMicEnabled() { return micEnabled; },
+        get sttEngine() { return sttEngine; },
+        get fishSttEnabled() { return fishSttEnabled; },
+        get fishTtsEnabled() { return fishTtsEnabled; },
 
         init() {
             return init();
@@ -438,6 +636,7 @@ const Speech = (() => {
         requestMicPermission,
         startVolumeAnalysis,
         unlockTTS,
+        configureFish,
 
         // Expose the AudioContext so other modules can reuse it
         // (avoids browsers blocking audio created outside user gesture)

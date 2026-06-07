@@ -1,2 +1,66 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+/* ============================================
+   LANDING PAGE — ANIMATIONS
+   ============================================ */
+
+/* Packet flowing across the "how it works" pipeline */
+@keyframes flow-packet {
+  0%   { left: 0%;   opacity: 0; }
+  4%   { opacity: 1; }
+  96%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* Each step lights up as the packet arrives */
+@keyframes step-active {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0);
+    border-color: rgba(255, 255, 255, 0.08);
+    transform: translateY(0);
+  }
+  50% {
+    box-shadow: 0 0 28px 4px rgba(96, 165, 250, 0.45);
+    border-color: rgba(96, 165, 250, 0.6);
+    transform: translateY(-4px);
+  }
+}
+
+/* Floating data chips bobbing between steps */
+@keyframes float-chip {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50%      { transform: translateY(-6px); opacity: 1; }
+}
+
+/* Robot eye blink loop (driven by transform on a group) */
+@keyframes robot-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  94%, 97%      { transform: scaleY(0.08); }
+}
+
+/* Subtle idle bob for the robot faces */
+@keyframes robot-idle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* Soundwave bars (microphone listening) */
+@keyframes soundwave {
+  0%, 100% { transform: scaleY(0.35); }
+  50%      { transform: scaleY(1); }
+}
+
+/* Slow rotating dashed ring around the AI brain step */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Reusable helpers */
+.animate-flow-packet { animation: flow-packet 6s linear infinite; }
+.animate-robot-blink { animation: robot-blink 5s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.animate-robot-idle  { animation: robot-idle 4s ease-in-out infinite; }
+.animate-spin-slow   { animation: spin-slow 14s linear infinite; }
+.animate-float-chip  { animation: float-chip 2.6s ease-in-out infinite; }
+.animate-soundwave   { animation: soundwave 0.9s ease-in-out infinite; transform-origin: center; }

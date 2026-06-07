@@ -65,7 +65,9 @@ export async function POST(request) {
       nomeSecretario = '',
       hatEnabled = false,
       hatColor = '#333333',
-      hatLogo = ''
+      hatLogo = '',
+      fishSttEnabled = false,
+      fishTtsEnabled = false
     } = body;
 
     const sanitize = (str) => {
@@ -86,8 +88,9 @@ export async function POST(request) {
           robotName, nomeProfessor, pais, estado, cidade, nomeEscola, salaLocal,
           codigoBNCC, descricaoBNCC, hatEnabled, hatColor, hatLogo,
           nomeDiretor, nomeRecepcionista, nomeSecretario,
-          disciplina, objetivoAula, turno, proximosEventos, avisosGerais, eventosHoje
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          disciplina, objetivoAula, turno, proximosEventos, avisosGerais, eventosHoje,
+          fish_stt_enabled, fish_tts_enabled
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           webhookUrl = excluded.webhookUrl,
           jwtToken = excluded.jwtToken,
@@ -120,6 +123,8 @@ export async function POST(request) {
           proximosEventos = excluded.proximosEventos,
           avisosGerais = excluded.avisosGerais,
           eventosHoje = excluded.eventosHoje,
+          fish_stt_enabled = excluded.fish_stt_enabled,
+          fish_tts_enabled = excluded.fish_tts_enabled,
           updated_at = CURRENT_TIMESTAMP
       `,
       args: [
@@ -130,7 +135,8 @@ export async function POST(request) {
         hatEnabled ? 1 : 0, hatColor, hatLogo,
         sanitize(nomeDiretor), sanitize(nomeRecepcionista), sanitize(nomeSecretario),
         sanitize(disciplina), sanitize(objetivoAula), sanitize(turno),
-        sanitizeLarge(proximosEventos), sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje)
+        sanitizeLarge(proximosEventos), sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje),
+        fishSttEnabled ? 1 : 0, fishTtsEnabled ? 1 : 0
       ]
     });
 
