@@ -53,6 +53,10 @@ export async function POST(request) {
       salaLocal = '',
       codigoBNCC = '',
       descricaoBNCC = '',
+      disciplina = '',
+      objetivoAula = '',
+      turno = '',
+      proximosEventos = '',
       nomeDiretor = '',
       nomeRecepcionista = '',
       nomeSecretario = '',
@@ -67,6 +71,12 @@ export async function POST(request) {
       return str.substring(0, 255).replace(/<[^>]*>/g, '');
     };
 
+    // Sanitize for larger text fields (max 1000 chars)
+    const sanitizeLarge = (str) => {
+      if (typeof str !== 'string') return '';
+      return str.substring(0, 1000).replace(/<[^>]*>/g, '');
+    };
+
     // UPSERT (SQLite)
     await db.execute({
       sql: `
@@ -74,9 +84,10 @@ export async function POST(request) {
           user_id, webhookUrl, jwtToken, corDestaque, vozIndex, 
           velocidadeFala, timeoutSonolencia, sessaoId, isKidsMode, topicDia, volumeRobo,
           robotName, nomeProfessor, pais, estado, cidade, nomeEscola, salaLocal,
-          codigoBNCC, descricaoBNCC, nomeDiretor, nomeRecepcionista, nomeSecretario,
+          codigoBNCC, descricaoBNCC, disciplina, objetivoAula, turno, proximosEventos,
+          nomeDiretor, nomeRecepcionista, nomeSecretario,
           hatEnabled, hatColor, hatLogo
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           webhookUrl = excluded.webhookUrl,
           jwtToken = excluded.jwtToken,
@@ -97,6 +108,10 @@ export async function POST(request) {
           salaLocal = excluded.salaLocal,
           codigoBNCC = excluded.codigoBNCC,
           descricaoBNCC = excluded.descricaoBNCC,
+          disciplina = excluded.disciplina,
+          objetivoAula = excluded.objetivoAula,
+          turno = excluded.turno,
+          proximosEventos = excluded.proximosEventos,
           nomeDiretor = excluded.nomeDiretor,
           nomeRecepcionista = excluded.nomeRecepcionista,
           nomeSecretario = excluded.nomeSecretario,
@@ -110,6 +125,8 @@ export async function POST(request) {
         velocidadeFala, timeoutSonolencia, sessaoId, isKidsMode ? 1 : 0, topicDia, volumeRobo,
         robotName, nomeProfessor, pais, estado, cidade, nomeEscola, salaLocal,
         codigoBNCC, descricaoBNCC,
+        sanitize(disciplina), sanitize(objetivoAula), sanitize(turno),
+        sanitizeLarge(proximosEventos),
         sanitize(nomeDiretor), sanitize(nomeRecepcionista), sanitize(nomeSecretario),
         hatEnabled ? 1 : 0, hatColor, hatLogo
       ]

@@ -215,6 +215,32 @@
                     <input type="text" id="cfg-bncc-descricao" maxlength="200" placeholder="Ex: Resolver e elaborar problemas de adição e subtração">
                 </div>
 
+                <!-- Pedagogical Fields -->
+                <div class="field-group">
+                    <label for="cfg-disciplina">Disciplina <span class="optional">(opcional)</span></label>
+                    <input type="text" id="cfg-disciplina" maxlength="100" placeholder="Ex: Matemática, Ciências, História...">
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-turno">Turno <span class="optional">(opcional)</span></label>
+                    <select id="cfg-turno">
+                        <option value="">Selecione...</option>
+                        <option value="matutino">Matutino</option>
+                        <option value="vespertino">Vespertino</option>
+                        <option value="noturno">Noturno</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-objetivo-aula">Objetivo da Aula <span class="optional">(opcional)</span></label>
+                    <textarea id="cfg-objetivo-aula" maxlength="255" rows="2" placeholder="Ex: Compreender frações equivalentes"></textarea>
+                </div>
+
+                <div class="field-group">
+                    <label for="cfg-proximos-eventos">Próximos Eventos <span class="optional">(opcional)</span></label>
+                    <textarea id="cfg-proximos-eventos" maxlength="1000" rows="4" placeholder="Ex:&#10;Festa Junina - 15/06 - Gincana e quadrilha&#10;Copa Escolar - 20/06 - Partidas de futebol&#10;Feira de Ciências - 25/06 - Apresentação de projetos"></textarea>
+                </div>
+
                 <div class="modal-buttons">
                     <button type="button" class="btn-secondary" id="btn-clear-topic">
                         Limpar

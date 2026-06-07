@@ -74,6 +74,11 @@ const Webhook = (() => {
             // BNCC fields
             codigo_bncc: config.codigoBNCC || '',
             descricao_bncc: config.descricaoBNCC || '',
+            // Pedagogical fields
+            disciplina: config.disciplina || '',
+            objetivo_aula: config.objetivoAula || '',
+            turno: config.turno || '',
+            proximos_eventos: config.proximosEventos || '',
             // Location fields
             pais: config.pais || '',
             estado: config.estado || '',
@@ -108,6 +113,11 @@ const Webhook = (() => {
             // BNCC fields
             codigo_bncc: config.codigoBNCC || '',
             descricao_bncc: config.descricaoBNCC || '',
+            // Pedagogical fields
+            disciplina: config.disciplina || '',
+            objetivo_aula: config.objetivoAula || '',
+            turno: config.turno || '',
+            proximos_eventos: config.proximosEventos || '',
             // Location fields
             pais: config.pais || '',
             estado: config.estado || '',
@@ -143,6 +153,11 @@ const Webhook = (() => {
             // BNCC fields
             codigo_bncc: config.codigoBNCC || 'EF05MA01',
             descricao_bncc: config.descricaoBNCC || 'Resolver e elaborar problemas de adição e subtração',
+            // Pedagogical fields
+            disciplina: config.disciplina || 'Matemática',
+            objetivo_aula: config.objetivoAula || 'Compreender frações equivalentes',
+            turno: config.turno || 'matutino',
+            proximos_eventos: config.proximosEventos || 'Festa Junina - 15/06 - Gincana',
             // Location fields
             pais: config.pais || 'Brasil',
             estado: config.estado || 'São Paulo',

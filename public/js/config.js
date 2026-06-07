@@ -26,6 +26,10 @@ const Config = (() => {
         salaLocal: '',          // Sala ou local físico
         codigoBNCC: '',         // Código BNCC (opcional)
         descricaoBNCC: '',      // Descrição do componente BNCC (opcional)
+        disciplina: '',          // Disciplina (opcional)
+        objetivoAula: '',       // Objetivo da aula (opcional)
+        turno: '',              // Turno (opcional)
+        proximosEventos: '',     // Próximos eventos (opcional)
         nomeProfessor: '',      // Nome do professor (opcional)
         nomeDiretor: '',        // Nome do diretor (opcional)
         nomeRecepcionista: '',  // Nome do recepcionista (opcional)
@@ -105,6 +109,10 @@ const Config = (() => {
     const topicInput = document.getElementById('cfg-topic');
     const bnccCodigoInput = document.getElementById('cfg-bncc-codigo');
     const bnccDescricaoInput = document.getElementById('cfg-bncc-descricao');
+    const disciplinaInput = document.getElementById('cfg-disciplina');
+    const turnoSelect = document.getElementById('cfg-turno');
+    const objetivoAulaInput = document.getElementById('cfg-objetivo-aula');
+    const proximosEventosInput = document.getElementById('cfg-proximos-eventos');
     const diretorInput = document.getElementById('cfg-diretor');
     const recepcionistaInput = document.getElementById('cfg-recepcionista');
     const secretarioInput = document.getElementById('cfg-secretario');
@@ -225,6 +233,18 @@ const Config = (() => {
         }
         if (bnccDescricaoInput) {
             bnccDescricaoInput.value = current.descricaoBNCC || '';
+        }
+        if (disciplinaInput) {
+            disciplinaInput.value = current.disciplina || '';
+        }
+        if (turnoSelect) {
+            turnoSelect.value = current.turno || '';
+        }
+        if (objetivoAulaInput) {
+            objetivoAulaInput.value = current.objetivoAula || '';
+        }
+        if (proximosEventosInput) {
+            proximosEventosInput.value = current.proximosEventos || '';
         }
         if (topicOverlay) {
             topicOverlay.classList.add('active');
@@ -523,6 +543,10 @@ const Config = (() => {
                     current.topicDia = topic;
                     current.codigoBNCC = bnccCodigoInput ? bnccCodigoInput.value.trim() : '';
                     current.descricaoBNCC = bnccDescricaoInput ? bnccDescricaoInput.value.trim() : '';
+                    current.disciplina = disciplinaInput ? disciplinaInput.value.trim() : '';
+                    current.turno = turnoSelect ? turnoSelect.value : '';
+                    current.objetivoAula = objetivoAulaInput ? objetivoAulaInput.value.trim() : '';
+                    current.proximosEventos = proximosEventosInput ? proximosEventosInput.value.trim() : '';
                     await save(current);
                     if (topicIndicator) {
                         topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
@@ -537,7 +561,19 @@ const Config = (() => {
             if (clearTopicBtn) {
                 clearTopicBtn.addEventListener('click', async () => {
                     if (topicInput) topicInput.value = '';
+                    if (bnccCodigoInput) bnccCodigoInput.value = '';
+                    if (bnccDescricaoInput) bnccDescricaoInput.value = '';
+                    if (disciplinaInput) disciplinaInput.value = '';
+                    if (turnoSelect) turnoSelect.value = '';
+                    if (objetivoAulaInput) objetivoAulaInput.value = '';
+                    if (proximosEventosInput) proximosEventosInput.value = '';
                     current.topicDia = '';
+                    current.codigoBNCC = '';
+                    current.descricaoBNCC = '';
+                    current.disciplina = '';
+                    current.turno = '';
+                    current.objetivoAula = '';
+                    current.proximosEventos = '';
                     await save(current);
                     if (topicIndicator) {
                         topicIndicator.classList.toggle('hidden', true);
