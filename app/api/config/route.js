@@ -57,6 +57,8 @@ export async function POST(request) {
       objetivoAula = '',
       turno = '',
       proximosEventos = '',
+      avisosGerais = '',
+      eventosHoje = '',
       nomeDiretor = '',
       nomeRecepcionista = '',
       nomeSecretario = '',
@@ -85,9 +87,10 @@ export async function POST(request) {
           velocidadeFala, timeoutSonolencia, sessaoId, isKidsMode, topicDia, volumeRobo,
           robotName, nomeProfessor, pais, estado, cidade, nomeEscola, salaLocal,
           codigoBNCC, descricaoBNCC, disciplina, objetivoAula, turno, proximosEventos,
+          avisosGerais, eventosHoje,
           nomeDiretor, nomeRecepcionista, nomeSecretario,
           hatEnabled, hatColor, hatLogo
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           webhookUrl = excluded.webhookUrl,
           jwtToken = excluded.jwtToken,
@@ -112,6 +115,8 @@ export async function POST(request) {
           objetivoAula = excluded.objetivoAula,
           turno = excluded.turno,
           proximosEventos = excluded.proximosEventos,
+          avisosGerais = excluded.avisosGerais,
+          eventosHoje = excluded.eventosHoje,
           nomeDiretor = excluded.nomeDiretor,
           nomeRecepcionista = excluded.nomeRecepcionista,
           nomeSecretario = excluded.nomeSecretario,
@@ -127,6 +132,7 @@ export async function POST(request) {
         codigoBNCC, descricaoBNCC,
         sanitize(disciplina), sanitize(objetivoAula), sanitize(turno),
         sanitizeLarge(proximosEventos),
+        sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje),
         sanitize(nomeDiretor), sanitize(nomeRecepcionista), sanitize(nomeSecretario),
         hatEnabled ? 1 : 0, hatColor, hatLogo
       ]

@@ -45,6 +45,8 @@ async function setupDb() {
         objetivoAula TEXT DEFAULT '',
         turno TEXT DEFAULT '',
         proximosEventos TEXT DEFAULT '',
+        avisosGerais TEXT DEFAULT '',
+        eventosHoje TEXT DEFAULT '',
         nomeDiretor TEXT DEFAULT '',
         nomeRecepcionista TEXT DEFAULT '',
         nomeSecretario TEXT DEFAULT '',

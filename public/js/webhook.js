@@ -94,6 +94,8 @@ const Webhook = (() => {
             objetivo_aula: config.objetivoAula || '',
             turno: config.turno || '',
             proximos_eventos: config.proximosEventos || '',
+            eventos_hoje: config.eventosHoje || '',
+            avisos_gerais: config.avisosGerais || '',
             // Location fields
             pais: config.pais || '',
             estado: config.estado || '',
@@ -135,6 +137,8 @@ const Webhook = (() => {
             objetivo_aula: config.objetivoAula || '',
             turno: config.turno || '',
             proximos_eventos: config.proximosEventos || '',
+            eventos_hoje: config.eventosHoje || '',
+            avisos_gerais: config.avisosGerais || '',
             // Location fields
             pais: config.pais || '',
             estado: config.estado || '',
@@ -177,6 +181,8 @@ const Webhook = (() => {
             objetivo_aula: config.objetivoAula || 'Compreender frações equivalentes',
             turno: config.turno || 'matutino',
             proximos_eventos: config.proximosEventos || 'Festa Junina - 15/06 - Gincana',
+            eventos_hoje: config.eventosHoje || '8h - Reunião pedagógica',
+            avisos_gerais: config.avisosGerais || 'Trazer autorização para passeio',
             // Location fields
             pais: config.pais || 'Brasil',
             estado: config.estado || 'São Paulo',

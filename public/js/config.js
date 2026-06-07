@@ -30,6 +30,8 @@ const Config = (() => {
         objetivoAula: '',       // Objetivo da aula (opcional)
         turno: '',              // Turno (opcional)
         proximosEventos: '',     // Próximos eventos (opcional)
+        eventosHoje: '',         // Eventos de hoje (opcional)
+        avisosGerais: '',        // Avisos gerais (opcional)
         nomeProfessor: '',      // Nome do professor (opcional)
         nomeDiretor: '',        // Nome do diretor (opcional)
         nomeRecepcionista: '',  // Nome do recepcionista (opcional)
@@ -113,6 +115,8 @@ const Config = (() => {
     const turnoSelect = document.getElementById('cfg-turno');
     const objetivoAulaInput = document.getElementById('cfg-objetivo-aula');
     const proximosEventosInput = document.getElementById('cfg-proximos-eventos');
+    const eventosHojeInput = document.getElementById('cfg-eventos-hoje');
+    const avisosGeraisInput = document.getElementById('cfg-avisos-gerais');
     const diretorInput = document.getElementById('cfg-diretor');
     const recepcionistaInput = document.getElementById('cfg-recepcionista');
     const secretarioInput = document.getElementById('cfg-secretario');
@@ -245,6 +249,12 @@ const Config = (() => {
         }
         if (proximosEventosInput) {
             proximosEventosInput.value = current.proximosEventos || '';
+        }
+        if (eventosHojeInput) {
+            eventosHojeInput.value = current.eventosHoje || '';
+        }
+        if (avisosGeraisInput) {
+            avisosGeraisInput.value = current.avisosGerais || '';
         }
         if (topicOverlay) {
             topicOverlay.classList.add('active');
@@ -547,6 +557,8 @@ const Config = (() => {
                     current.turno = turnoSelect ? turnoSelect.value : '';
                     current.objetivoAula = objetivoAulaInput ? objetivoAulaInput.value.trim() : '';
                     current.proximosEventos = proximosEventosInput ? proximosEventosInput.value.trim() : '';
+                    current.eventosHoje = eventosHojeInput ? eventosHojeInput.value.trim() : '';
+                    current.avisosGerais = avisosGeraisInput ? avisosGeraisInput.value.trim() : '';
                     await save(current);
                     if (topicIndicator) {
                         topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
@@ -567,6 +579,8 @@ const Config = (() => {
                     if (turnoSelect) turnoSelect.value = '';
                     if (objetivoAulaInput) objetivoAulaInput.value = '';
                     if (proximosEventosInput) proximosEventosInput.value = '';
+                    if (eventosHojeInput) eventosHojeInput.value = '';
+                    if (avisosGeraisInput) avisosGeraisInput.value = '';
                     current.topicDia = '';
                     current.codigoBNCC = '';
                     current.descricaoBNCC = '';
@@ -574,6 +588,8 @@ const Config = (() => {
                     current.turno = '';
                     current.objetivoAula = '';
                     current.proximosEventos = '';
+                    current.eventosHoje = '';
+                    current.avisosGerais = '';
                     await save(current);
                     if (topicIndicator) {
                         topicIndicator.classList.toggle('hidden', true);
