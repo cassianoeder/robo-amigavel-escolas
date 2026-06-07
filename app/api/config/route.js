@@ -33,7 +33,6 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    console.log('Body received:', JSON.stringify(body).substring(0, 500));
     
     const {
       webhookUrl = '',
@@ -85,11 +84,10 @@ export async function POST(request) {
           user_id, webhookUrl, jwtToken, corDestaque, vozIndex, 
           velocidadeFala, timeoutSonolencia, sessaoId, isKidsMode, topicDia, volumeRobo,
           robotName, nomeProfessor, pais, estado, cidade, nomeEscola, salaLocal,
-          codigoBNCC, descricaoBNCC, disciplina, objetivoAula, turno, proximosEventos,
-          avisosGerais, eventosHoje,
+          codigoBNCC, descricaoBNCC, hatEnabled, hatColor, hatLogo,
           nomeDiretor, nomeRecepcionista, nomeSecretario,
-          hatEnabled, hatColor, hatLogo
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          disciplina, objetivoAula, turno, proximosEventos, avisosGerais, eventosHoje
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           webhookUrl = excluded.webhookUrl,
           jwtToken = excluded.jwtToken,
@@ -110,18 +108,18 @@ export async function POST(request) {
           salaLocal = excluded.salaLocal,
           codigoBNCC = excluded.codigoBNCC,
           descricaoBNCC = excluded.descricaoBNCC,
+          hatEnabled = excluded.hatEnabled,
+          hatColor = excluded.hatColor,
+          hatLogo = excluded.hatLogo,
+          nomeDiretor = excluded.nomeDiretor,
+          nomeRecepcionista = excluded.nomeRecepcionista,
+          nomeSecretario = excluded.nomeSecretario,
           disciplina = excluded.disciplina,
           objetivoAula = excluded.objetivoAula,
           turno = excluded.turno,
           proximosEventos = excluded.proximosEventos,
           avisosGerais = excluded.avisosGerais,
           eventosHoje = excluded.eventosHoje,
-          nomeDiretor = excluded.nomeDiretor,
-          nomeRecepcionista = excluded.nomeRecepcionista,
-          nomeSecretario = excluded.nomeSecretario,
-          hatEnabled = excluded.hatEnabled,
-          hatColor = excluded.hatColor,
-          hatLogo = excluded.hatLogo,
           updated_at = CURRENT_TIMESTAMP
       `,
       args: [
@@ -129,18 +127,16 @@ export async function POST(request) {
         velocidadeFala, timeoutSonolencia, sessaoId, isKidsMode ? 1 : 0, topicDia, volumeRobo,
         robotName, nomeProfessor, pais, estado, cidade, nomeEscola, salaLocal,
         codigoBNCC, descricaoBNCC,
-        sanitize(disciplina), sanitize(objetivoAula), sanitize(turno),
-        sanitizeLarge(proximosEventos),
-        sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje),
+        hatEnabled ? 1 : 0, hatColor, hatLogo,
         sanitize(nomeDiretor), sanitize(nomeRecepcionista), sanitize(nomeSecretario),
-        hatEnabled ? 1 : 0, hatColor, hatLogo
+        sanitize(disciplina), sanitize(objetivoAula), sanitize(turno),
+        sanitizeLarge(proximosEventos), sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje)
       ]
     });
 
-    console.log('Save successful!');
     return NextResponse.json({ message: 'Configuração salva com sucesso' });
   } catch (error) {
     console.error('Save config error:', error);
-    return NextResponse.json({ error: 'Erro interno no servidor: ' + error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
   }
 }

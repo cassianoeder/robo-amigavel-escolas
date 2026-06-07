@@ -63,11 +63,6 @@ const Config = (() => {
 
     // Save to server API
     async function save(config) {
-        console.log('=== ENVIANDO PARA API ===');
-        console.log('topicDia:', config.topicDia);
-        console.log('avisosGerais:', config.avisosGerais);
-        console.log('eventosHoje:', config.eventosHoje);
-        console.log('proximosEventos:', config.proximosEventos);
         try {
             await fetch('/api/config', {
                 method: 'POST',
