@@ -33,6 +33,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
+    console.log('Body received:', JSON.stringify(body).substring(0, 500));
     
     const {
       webhookUrl = '',
@@ -88,7 +89,7 @@ export async function POST(request) {
           avisosGerais, eventosHoje,
           nomeDiretor, nomeRecepcionista, nomeSecretario,
           hatEnabled, hatColor, hatLogo
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           webhookUrl = excluded.webhookUrl,
           jwtToken = excluded.jwtToken,
@@ -136,6 +137,7 @@ export async function POST(request) {
       ]
     });
 
+    console.log('Save successful!');
     return NextResponse.json({ message: 'Configuração salva com sucesso' });
   } catch (error) {
     console.error('Save config error:', error);
