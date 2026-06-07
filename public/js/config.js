@@ -301,7 +301,7 @@ const Config = (() => {
         current.salaLocal = salaLocalInput.value.trim();
         current.nomeDiretor = diretorInput ? diretorInput.value.trim() : '';
         current.nomeRecepcionista = recepcionistaInput ? recepcionistaInput.value.trim() : '';
-        current.nomeSecretario = secretaryInput ? secretaryInput.value.trim() : '';
+        current.nomeSecretario = secretarioInput ? secretarioInput.value.trim() : '';
         
         // Preserve topic/day fields
         current.topicDia = current.topicDia || '';
