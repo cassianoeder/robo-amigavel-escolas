@@ -171,6 +171,53 @@
                     </select>
                 </div>
 
+                <!-- Payload Manual -->
+                <div class="field-group full-width">
+                    <details class="payload-manual">
+                        <summary>📋 Manual do Payload (clique para expandir)</summary>
+                        <div class="payload-manual-content">
+                            <p class="payload-intro">Estes são todos os campos enviados ao n8n a cada interação:</p>
+                            
+                            <div class="payload-section">
+                                <h4>🔹 Campos Estáticos (opções fixas)</h4>
+                                <ul>
+                                    <li><strong>modo</strong>: <code>kids</code> | <code>normal</code></li>
+                                    <li><strong>tipo</strong>: <code>fala</code> | <code>movimento detectado</code> | <code>teste</code></li>
+                                    <li><strong>periodo_dia</strong>: <code>madrugada</code> (00-06h) | <code>manha</code> (06-12h) | <code>tarde</code> (12-18h) | <code>noite</code> (18-24h)</li>
+                                    <li><strong>turno</strong>: <code>matutino</code> | <code>vespertino</code> | <code>noturno</code> | <code>""</code> (vazio)</li>
+                                </ul>
+                            </div>
+
+                            <div class="payload-section">
+                                <h4>🔸 Campos Dinâmicos (preenchidos por você)</h4>
+                                <ul>
+                                    <li><strong>robot_name</strong>: nome do seu robô</li>
+                                    <li><strong>nome_professor</strong>: nome do professor</li>
+                                    <li><strong>pais</strong>, <strong>estado</strong>, <strong>cidade</strong>: localização</li>
+                                    <li><strong>nome_escola</strong>: nome da escola</li>
+                                    <li><strong>sala_local</strong>: sala ou local físico</li>
+                                    <li><strong>nome_diretor</strong>, <strong>nome_recepcionista</strong>, <strong>nome_secretario</strong>: pessoal administrativo</li>
+                                    <li><strong>assunto</strong>: assunto do dia (modal Assunto do Dia)</li>
+                                    <li><strong>codigo_bncc</strong>, <strong>descricao_bncc</strong>: dados BNCC</li>
+                                    <li><strong>disciplina</strong>, <strong>objetivo_aula</strong>: contexto pedagógico</li>
+                                    <li><strong>proximos_eventos</strong>: eventos futuros da escola</li>
+                                </ul>
+                                <p class="payload-note">⚠️ Campos vazios serão enviados como string vazia <code>""</code></p>
+                            </div>
+
+                            <div class="payload-section">
+                                <h4>⏰ Campos Automáticos (gerados pelo sistema)</h4>
+                                <ul>
+                                    <li><strong>sessao_id</strong>: ID único gerado por sessão</li>
+                                    <li><strong>hora</strong>: horário atual (ex: 14:30:25)</li>
+                                    <li><strong>dia</strong>: data atual (ex: 07/06/2026)</li>
+                                    <li><strong>ano</strong>: ano atual</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
                 <div class="field-group full-width" style="display: flex; gap: 12px; margin-top: 8px;">
                     <button type="submit" class="btn-primary" id="btn-save-config" style="margin-top: 0;">
                         <span class="btn-icon">🤖</span> Ativar Robô
