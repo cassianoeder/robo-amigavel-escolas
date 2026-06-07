@@ -301,7 +301,19 @@ const Config = (() => {
         current.salaLocal = salaLocalInput.value.trim();
         current.nomeDiretor = diretorInput ? diretorInput.value.trim() : '';
         current.nomeRecepcionista = recepcionistaInput ? recepcionistaInput.value.trim() : '';
-        current.nomeSecretario = secretarioInput ? secretarioInput.value.trim() : '';
+        current.nomeSecretario = secretaryInput ? secretaryInput.value.trim() : '';
+        
+        // Preserve topic/day fields
+        current.topicDia = current.topicDia || '';
+        current.codigoBNCC = current.codigoBNCC || '';
+        current.descricaoBNCC = current.descricaoBNCC || '';
+        current.disciplina = current.disciplina || '';
+        current.objetivoAula = current.objetivoAula || '';
+        current.turno = current.turno || '';
+        current.proximosEventos = current.proximosEventos || '';
+        current.eventosHoje = current.eventosHoje || '';
+        current.avisosGerais = current.avisosGerais || '';
+        
         current.corDestaque = selectedColor ? selectedColor.dataset.color : 'azul-escuro';
         current.vozIndex = parseInt(voiceSelect.value) || 0;
         current.velocidadeFala = parseFloat(rateSlider.value) || 1.0;
