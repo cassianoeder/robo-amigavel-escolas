@@ -449,9 +449,11 @@ const Config = (() => {
                     if (getFSElement()) {
                         fullscreenBtn.textContent = '✕';
                         fullscreenBtn.title = 'Sair da Tela Cheia';
+                        document.body.classList.add('fullscreen-mode');
                     } else {
                         fullscreenBtn.textContent = '⛶';
                         fullscreenBtn.title = 'Tela Cheia';
+                        document.body.classList.remove('fullscreen-mode');
                     }
                 };
 
