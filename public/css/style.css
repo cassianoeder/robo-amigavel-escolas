@@ -11,6 +11,7 @@
     --accent: #1B3A6B;
     --accent-glow: rgba(27, 58, 107, 0.4);
     --face-bg: var(--accent);
+    --face-bg-rgb: 27, 58, 107;
     --eye-white: #FFFFFF;
     --eye-iris: #3B2F1E;
     --eye-pupil: #1A1208;
@@ -36,6 +37,7 @@
     --accent: #FF69B4;
     --accent-glow: rgba(255, 105, 180, 0.35);
     --face-bg: #FF69B4;
+    --face-bg-rgb: 255, 105, 180;
     --eyelid-color: #FF69B4;
     --eye-pupil: #CC3366;
 }
@@ -44,6 +46,7 @@
     --accent: #39FF14;
     --accent-glow: rgba(57, 255, 20, 0.3);
     --face-bg: #22CC10;
+    --face-bg-rgb: 34, 204, 16;
     --eyelid-color: #22CC10;
     --eye-pupil: #1A8008;
 }
@@ -52,6 +55,7 @@
     --accent: #1B3A6B;
     --accent-glow: rgba(27, 58, 107, 0.4);
     --face-bg: #1B3A6B;
+    --face-bg-rgb: 27, 58, 107;
     --eyelid-color: #1B3A6B;
     --eye-pupil: #0A1A30;
 }
@@ -60,6 +64,7 @@
     --accent: #FF6B35;
     --accent-glow: rgba(255, 107, 53, 0.35);
     --face-bg: #FF6B35;
+    --face-bg-rgb: 255, 107, 53;
     --eyelid-color: #FF6B35;
     --eye-pupil: #CC4415;
 }
@@ -68,6 +73,7 @@
     --accent: #E8E8F0;
     --accent-glow: rgba(232, 232, 240, 0.3);
     --face-bg: #D8D8E8;
+    --face-bg-rgb: 216, 216, 232;
     --eyelid-color: #D8D8E8;
     --eye-iris: #5A4F3E;
     --eye-pupil: #666680;
@@ -77,13 +83,39 @@
     --accent: #000000;
     --accent-glow: rgba(0, 0, 0, 0.4);
     --face-bg: #000000;
+    --face-bg-rgb: 0, 0, 0;
     --eyelid-color: #000000;
-    --eye-iris: #1b5e39;
+    --eye-iris: #5A5A5A;
     --eye-pupil: #000000;
 }
 
 [data-theme="preto"] .btn-primary {
     color: #FFFFFF;
+}
+
+/* Better contrast for light themes */
+[data-theme="branco"] body,
+[data-theme="branco"] .top-controls,
+[data-theme="branco"] .modal-card,
+[data-theme="branco"] .field-group label,
+[data-theme="branco"] .color-label,
+[data-theme="branco"] .noise-warning {
+    color: #1A1A2E;
+}
+
+[data-theme="branco"] .modal-overlay {
+    background: rgba(216, 216, 232, 0.95);
+}
+
+[data-theme="branco"] .control-btn {
+    background: rgba(26, 26, 46, 0.15);
+    border-color: rgba(26, 26, 46, 0.2);
+    color: #1A1A2E;
+}
+
+[data-theme="branco"] .control-btn:hover {
+    background: rgba(26, 26, 46, 0.25);
+    color: #1A1A2E;
 }
 
 /* --- Reset & Base --- */
@@ -656,10 +688,9 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
-    background: var(--bg-primary);
-    transition: opacity var(--transition-slow);
+    background: var(--face-bg);
+    transition: opacity var(--transition-slow), background var(--transition-slow);
     perspective: 1200px;
-    /* Added for 3D head turn effect */
 }
 
 .robot-container.hidden {
