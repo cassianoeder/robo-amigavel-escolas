@@ -68,6 +68,17 @@
     --eye-iris: #5A4F3E;
     --eye-pupil: #666680;
 }
+[data-theme="preto"] {
+    --accent: #1A1A1A;
+    --accent-glow: rgba(26, 26, 26, 0.4);
+    --face-bg: #1A1A1A;
+    --eyelid-color: #1A1A1A;
+    --eye-iris: #5A5A5A;
+    --eye-pupil: #000000;
+}
+[data-theme="preto"] .btn-primary {
+    color: #FFFFFF;
+}
 
 /* --- Reset & Base --- */
 *, *::before, *::after {

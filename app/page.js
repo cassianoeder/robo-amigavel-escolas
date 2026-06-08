@@ -8,6 +8,7 @@ const ROBOT_THEMES = [
   { name: 'Verde Neon',   face: '#22CC10', iris: '#3B2F1E', pupil: '#1A8008' },
   { name: 'Laranja',      face: '#FF6B35', iris: '#3B2F1E', pupil: '#CC4415' },
   { name: 'Branco',       face: '#D8D8E8', iris: '#5A4F3E', pupil: '#666680' },
+  { name: 'Preto',        face: '#1A1A1A', iris: '#5A5A5A', pupil: '#000000' },
 ];
 
 function RobotFace({ face, iris, pupil, name }) {
@@ -390,9 +391,9 @@ export default function LandingPage() {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
             Conheça o rosto do robô
           </h2>
-          <p className="text-center text-white/50 mb-14 max-w-2xl mx-auto">
-            Cinco cores prontas, expressões reativas (alegre, pensando, surpreso, sonolento) e boné customizável com a <strong className="text-white/70">logo da sua escola</strong>.
-          </p>
+            <p className="text-center text-white/50 mb-14 max-w-2xl mx-auto">
+              Seis cores prontas, expressões reativas (alegre, pensando, surpreso, sonolento) e boné customizável com a <strong className="text-white/70">logo da sua escola</strong>.
+            </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8 max-w-5xl mx-auto">
             {ROBOT_THEMES.map((theme) => (
