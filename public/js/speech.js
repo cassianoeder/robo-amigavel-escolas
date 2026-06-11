@@ -1,6 +1,8 @@
-/* ============================================
-   SPEECH.JS — STT + TTS via Web Speech API
-   ============================================ */
+/* ============================================================
+   SPEECH.JS — STT + TTS Híbrido
+   Desktop/Windows : Web Speech API nativa (sem mudanças)
+   Android/Mobile  : Whisper-tiny via Transformers.js + AudioWorklet
+   ============================================================ */
 
 const Speech = (() => {
     // Mobile detection
@@ -47,57 +49,148 @@ const Speech = (() => {
 
     // ===== STT Engine Detection & Initialization =====
 
-    let voskModel = null;
-    let voskRecognizer = null;
-    let isVoskLoaded = false;
-    let voskLoading = false;
+    // Whisper state (Android only)
+    let whisperWorker = null;
+    let isWhisperReady = false;
+    let whisperAudioContext = null;
+    let whisperWorkletNode = null;
+    let whisperMicStream = null;
+    let onWhisperLoadProgress = null; // callback: (progress 0-100, message) => void
 
-    async function initVosk() {
-        if (voskLoading || isVoskLoaded || !window.Vosk) return;
-        voskLoading = true;
+    function initWhisper() {
+        if (whisperWorker) return; // já inicializado
+        console.log('[Whisper] Iniciando worker...');
+
+        whisperWorker = new Worker('/js/whisper-worker.js');
+
+        whisperWorker.addEventListener('message', (event) => {
+            const { type, text, progress, message } = event.data;
+
+            if (type === 'loading_progress') {
+                console.log(`[Whisper] Download: ${progress}% — ${message}`);
+                // Mostra banner de progresso na UI
+                _whisperShowLoadingBanner(progress, message);
+                if (onWhisperLoadProgress) onWhisperLoadProgress(progress, message);
+
+            } else if (type === 'ready') {
+                isWhisperReady = true;
+                _whisperHideLoadingBanner();
+                console.log('[Whisper] Modelo pronto! Iniciando captura de áudio...');
+                // Agora que o modelo está pronto, liga o microfone
+                if (micEnabled && !isListening) {
+                    _startWhisperAudio();
+                }
+
+            } else if (type === 'transcript') {
+                if (text && onTranscript) {
+                    console.log(`[Whisper] Transcrição: "${text}"`);
+                    onTranscript(text);
+                }
+
+            } else if (type === 'error') {
+                console.error('[Whisper] Erro fatal no worker:', event.data.message);
+                _whisperHideLoadingBanner();
+            }
+        });
+
+        // Dispara o carregamento do modelo
+        whisperWorker.postMessage({ type: 'load' });
+    }
+
+    async function _startWhisperAudio() {
+        if (whisperAudioContext) return; // já ligado
         try {
-            console.log('[Vosk] Carregando modelo acústico...');
-            voskModel = await Vosk.createModel('/models/vosk-model-small-pt-0.3.tar.gz');
-            voskRecognizer = new voskModel.KaldiRecognizer();
-            voskRecognizer.setWords(true);
-
-            voskRecognizer.on("result", (message) => {
-                const transcript = message.result.text ? message.result.text.trim() : '';
-                if (transcript && onTranscript) {
-                    console.log(`[Vosk] Transcrição: "${transcript}"`);
-                    onTranscript(transcript);
+            whisperMicStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    channelCount: 1,
+                    // NÃO forçar sampleRate — deixar o hardware Android escolher
                 }
             });
-            isVoskLoaded = true;
-            console.log('[Vosk] Modelo carregado e pronto para uso!');
-            
-            // Auto-start se o microfone já estiver habilitado
-            if (micEnabled && !isListening) {
-                startListening();
-            }
+
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            whisperAudioContext = new AudioContextClass(); // sample rate NATIVO do dispositivo
+            const nativeSampleRate = whisperAudioContext.sampleRate;
+            console.log(`[Whisper] AudioContext sample rate nativo: ${nativeSampleRate}Hz`);
+
+            // Carrega o AudioWorklet (thread dedicada de áudio)
+            await whisperAudioContext.audioWorklet.addModule('/js/audio-processor.worklet.js');
+
+            const source = whisperAudioContext.createMediaStreamSource(whisperMicStream);
+            whisperWorkletNode = new AudioWorkletNode(whisperAudioContext, 'audio-processor', {
+                processorOptions: { inputSampleRate: nativeSampleRate }
+            });
+
+            // Chunks downsampled chegam do AudioWorklet e vão pro Whisper Worker
+            whisperWorkletNode.port.onmessage = (event) => {
+                if (event.data.type === 'audio_chunk' && isListening && micEnabled) {
+                    if (!synth.speaking) { // Não transcreve enquanto o robô fala
+                        whisperWorker.postMessage(
+                            { type: 'audio_chunk', chunk: event.data.chunk },
+                            [event.data.chunk.buffer]
+                        );
+                    }
+                }
+            };
+
+            source.connect(whisperWorkletNode);
+            // NÃO conectar ao destination — só processamento, sem saída de áudio
+
+            isListening = true;
+            if (onListeningStart) onListeningStart();
+            console.log('[Whisper] Microfone ativo, escutando...');
+
         } catch (e) {
-            console.error('[Vosk] Falha ao carregar modelo:', e);
-        } finally {
-            voskLoading = false;
+            console.error('[Whisper] Falha ao iniciar AudioWorklet:', e);
+            // Fallback: se AudioWorklet falhar, tenta Web Speech API mesmo no mobile
+            console.warn('[Whisper] Fallback para Web Speech API nativa');
+            sttEngine = 'native';
+            initRecognition();
+            startListening();
         }
+    }
+
+    function _stopWhisperAudio() {
+        if (whisperWorkletNode) { whisperWorkletNode.disconnect(); whisperWorkletNode = null; }
+        if (whisperAudioContext) { whisperAudioContext.close(); whisperAudioContext = null; }
+        if (whisperMicStream) { whisperMicStream.getTracks().forEach(t => t.stop()); whisperMicStream = null; }
+        isListening = false;
+        if (onListeningStop) onListeningStop();
+    }
+
+    // Helpers de UI para o banner de loading do Whisper
+    function _whisperShowLoadingBanner(progress, message) {
+        let banner = document.getElementById('whisper-loading');
+        if (!banner) return;
+        banner.classList.remove('hidden');
+        const bar = banner.querySelector('.whisper-progress-bar');
+        const label = banner.querySelector('.whisper-progress-label');
+        if (bar) bar.style.width = `${progress}%`;
+        if (label) label.textContent = message || `Carregando: ${progress}%`;
+    }
+
+    function _whisperHideLoadingBanner() {
+        const banner = document.getElementById('whisper-loading');
+        if (banner) banner.classList.add('hidden');
     }
 
     // Detect which STT engine to use
     function detectSTTEngine() {
-        if (isMobile && window.Vosk) {
-            console.log('[STT] Engine selecionado: Vosk (WASM Offline)');
-            initVosk(); // Load asynchronously
-            return 'vosk';
+        // Android: usa Whisper offline via AudioWorklet + Web Worker
+        if (isMobile && ('AudioWorklet' in AudioContext.prototype || 'AudioWorklet' in (window.AudioContext || window.webkitAudioContext || {}).prototype)) {
+            console.log('[STT] Engine selecionado: Whisper (Transformers.js + AudioWorklet)');
+            return 'whisper';
         }
 
+        // Android sem AudioWorklet: fallback para Web Speech API
         const hasNative = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-
         if (hasNative) {
             console.log('[STT] Engine selecionado: Web Speech API (nativo)');
             return 'native';
         }
 
-        console.error('[STT] Web Speech API não disponível neste navegador!');
+        console.error('[STT] Nenhum motor STT disponível neste navegador!');
         return null;
     }
 
@@ -115,13 +208,14 @@ const Speech = (() => {
         }
 
         if (wantsFish && !window.__fishCapabilityOk) {
-            console.warn('[STT] Fish solicitado mas capability insuficiente, usando Web Speech API nativo como fallback');
+            console.warn('[STT] Fish solicitado mas capability insuficiente, fallback nativo');
         }
 
         activeEngine = detectSTTEngine();
         sttEngine = activeEngine;
 
-        if (sttEngine === 'vosk') {
+        if (sttEngine === 'whisper') {
+            initWhisper(); // carrega o model assincronamente; áudio inicia após 'ready'
             return true;
         }
 
@@ -227,15 +321,14 @@ const Speech = (() => {
         if (sttEngine === 'fish') {
             return startFishListening();
         }
-        
-        if (sttEngine === 'vosk') {
-            if (!isVoskLoaded) {
-                console.log('[Vosk] Aguardando carregamento do modelo...');
-                return;
+
+        if (sttEngine === 'whisper') {
+            if (!isWhisperReady) {
+                console.log('[Whisper] Aguardando carregamento do modelo...');
+                return; // _startWhisperAudio() é chamado automaticamente quando 'ready'
             }
             if (isListening) return;
-            isListening = true;
-            if (onListeningStart) onListeningStart();
+            _startWhisperAudio();
             return;
         }
 
@@ -344,9 +437,8 @@ const Speech = (() => {
     }
 
     function stopListening() {
-        if (sttEngine === 'vosk') {
-            isListening = false;
-            if (onListeningStop) onListeningStop();
+        if (sttEngine === 'whisper') {
+            _stopWhisperAudio();
             return;
         }
 
@@ -624,118 +716,130 @@ const Speech = (() => {
         }
     }
 
-    let audioContext = null;
+    // ===== Volume Analysis (Desktop: usa AudioContext próprio; Mobile: reutiliza whisperAudioContext) =====
+    // No mobile (Whisper engine), o audioContext e o microfone já são gerenciados pelo _startWhisperAudio().
+    // No desktop, criamos um AudioContext dedicado para análise de volume.
+
+    let audioContext = null; // Desktop only
     let analyser = null;
     let microphone = null;
-    let javascriptNode = null;
     let onLoudSoundCallback = null;
     let onNoiseLevelChangeCallback = null;
     let noiseSamples = [];
+    let _volumeIntervalId = null;
 
     async function startVolumeAnalysis(onLoudSound) {
         onLoudSoundCallback = onLoudSound;
-        if (audioContext) return; // already initialized
+
+        // No mobile com Whisper: aguarda o audioContext do Whisper estar pronto
+        // O polling via setInterval é suficiente pois o Whisper inicia de forma assíncrona
+        if (sttEngine === 'whisper') {
+            _startWhisperVolumeAnalysis();
+            return;
+        }
+
+        if (audioContext) return; // já inicializado (desktop)
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: {
                 echoCancellation: true,
                 noiseSuppression: true,
-                sampleRate: 16000 // Force 16kHz for Vosk
+                channelCount: 1,
             }});
             const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            audioContext = new AudioContextClass({ sampleRate: 16000 });
+            audioContext = new AudioContextClass(); // sample rate nativo do hardware
             analyser = audioContext.createAnalyser();
             microphone = audioContext.createMediaStreamSource(stream);
-            javascriptNode = audioContext.createScriptProcessor(4096, 1, 1);
 
             analyser.smoothingTimeConstant = 0.3;
             analyser.fftSize = 512;
-
             microphone.connect(analyser);
-            analyser.connect(javascriptNode);
-            javascriptNode.connect(audioContext.destination);
 
-            let lastLoudTrigger = 0;
-
-            javascriptNode.onaudioprocess = () => {
-                const array = new Uint8Array(analyser.frequencyBinCount);
-                analyser.getByteFrequencyData(array);
-                let values = 0;
-                const length = array.length;
-                for (let i = 0; i < length; i++) {
-                    values += array[i];
-                }
-                const average = values / length;
-
-                // Threshold for "extremely loud sound"
-                // Standard claps/screams hit > 70/80 on a scale of 0-255 average
-                if (average > 75) {
-                    const now = Date.now();
-                    if (now - lastLoudTrigger > 4000) { // Throttle trigger to once every 4 seconds
-                        lastLoudTrigger = now;
-                        if (onLoudSoundCallback) onLoudSoundCallback();
-                    }
-                }
-
-                // Ambient Noise Analysis
-                // If synthesizer is speaking or microphone disabled/inactive, clear samples to avoid self-pickup
-                if (synth.speaking || !micEnabled || !isListening) {
-                    if (noiseSamples.length > 0) {
-                        noiseSamples = [];
-                        if (onNoiseLevelChangeCallback) onNoiseLevelChangeCallback(false, 0);
-                    }
-                    currentSpeechMaxVolume = 0;
-                    return;
-                }
-
-                // Feed Vosk Engine
-                if (sttEngine === 'vosk' && isVoskLoaded && voskRecognizer) {
-                    try {
-                        voskRecognizer.acceptWaveform(event.inputBuffer);
-                    } catch (err) {
-                        console.error('[Vosk] acceptWaveform error:', err);
-                    }
-                }
-
-                // Track max volume during active listening
-                if (average > currentSpeechMaxVolume) {
-                    currentSpeechMaxVolume = average;
-                }
-
-                noiseSamples.push(average);
-                if (noiseSamples.length > 50) { // ~2.5 seconds of history
-                    noiseSamples.shift();
-                }
-
-                // Use 25th-percentile as noise floor (consistent with gating logic)
-                const sorted = [...noiseSamples].sort((a, b) => a - b);
-                const noiseFloor = sorted[Math.floor(sorted.length * 0.25)];
-                // Threshold 30 indicates constant background noise (loud environment)
-                const isNoisy = noiseFloor > 30 && noiseSamples.length >= 40;
-
-                if (onNoiseLevelChangeCallback) {
-                    onNoiseLevelChangeCallback(isNoisy, noiseFloor);
-                }
-            };
+            _startDesktopVolumeLoop();
         } catch (e) {
             console.warn('Erro ao iniciar análise de volume do microfone:', e);
         }
     }
 
+    function _startDesktopVolumeLoop() {
+        if (_volumeIntervalId) return;
+        let lastLoudTrigger = 0;
+        _volumeIntervalId = setInterval(() => {
+            if (!analyser) return;
+            const array = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(array);
+            let values = 0;
+            for (let i = 0; i < array.length; i++) values += array[i];
+            const average = values / array.length;
+            _processVolumeAverage(average, lastLoudTrigger, (t) => { lastLoudTrigger = t; });
+        }, 100); // 10 vezes por segundo — suficiente para análise de volume
+    }
+
+    function _startWhisperVolumeAnalysis() {
+        if (_volumeIntervalId) return;
+        let lastLoudTrigger = 0;
+        _volumeIntervalId = setInterval(() => {
+            // Reutiliza o analyser do Whisper quando disponível
+            const ctx = whisperAudioContext;
+            if (!ctx || !analyser) {
+                // Cria o analyser na primeira vez que o contexto do Whisper existir
+                if (ctx && !analyser) {
+                    analyser = ctx.createAnalyser();
+                    analyser.smoothingTimeConstant = 0.3;
+                    analyser.fftSize = 512;
+                    if (whisperWorkletNode) whisperWorkletNode.connect(analyser);
+                }
+                return;
+            }
+            const array = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(array);
+            let values = 0;
+            for (let i = 0; i < array.length; i++) values += array[i];
+            const average = values / array.length;
+            _processVolumeAverage(average, lastLoudTrigger, (t) => { lastLoudTrigger = t; });
+        }, 100);
+    }
+
+    function _processVolumeAverage(average, lastLoudTrigger, setLastLoud) {
+        if (average > 75) {
+            const now = Date.now();
+            if (now - lastLoudTrigger > 4000) {
+                setLastLoud(now);
+                if (onLoudSoundCallback) onLoudSoundCallback();
+            }
+        }
+
+        if (synth.speaking || !micEnabled || !isListening) {
+            if (noiseSamples.length > 0) {
+                noiseSamples = [];
+                if (onNoiseLevelChangeCallback) onNoiseLevelChangeCallback(false, 0);
+            }
+            currentSpeechMaxVolume = 0;
+            return;
+        }
+
+        if (average > currentSpeechMaxVolume) currentSpeechMaxVolume = average;
+
+        noiseSamples.push(average);
+        if (noiseSamples.length > 50) noiseSamples.shift();
+
+        const sorted = [...noiseSamples].sort((a, b) => a - b);
+        const noiseFloor = sorted[Math.floor(sorted.length * 0.25)];
+        const isNoisy = noiseFloor > 30 && noiseSamples.length >= 40;
+        if (onNoiseLevelChangeCallback) onNoiseLevelChangeCallback(isNoisy, noiseFloor);
+    }
+
     // ===== Public API =====
 
     return {
-        get isListening() {
-            return isListening;
-        },
+        get isListening() { return isListening; },
         get isMicEnabled() { return micEnabled; },
         get sttEngine() { return sttEngine; },
         get fishSttEnabled() { return fishSttEnabled; },
         get fishTtsEnabled() { return fishTtsEnabled; },
+        get isWhisperReady() { return isWhisperReady; },
 
-        init() {
-            return init();
-        },
+        init() { return init(); },
 
         startListening,
         stopListening,
@@ -748,9 +852,8 @@ const Speech = (() => {
         unlockTTS,
         configureFish,
 
-        // Expose the AudioContext so other modules can reuse it
-        // (avoids browsers blocking audio created outside user gesture)
-        getAudioContext() { return audioContext; },
+        // Retorna o AudioContext ativo (Whisper ou Desktop)
+        getAudioContext() { return whisperAudioContext || audioContext; },
         get isMobile() { return isMobile; },
 
         // Callbacks
@@ -761,6 +864,7 @@ const Speech = (() => {
         onListeningStop: (cb) => onListeningStop = cb,
         cleanTextForTTS,
         detectEffect,
-        onNoiseLevelChange(cb) { onNoiseLevelChangeCallback = cb; }
+        onNoiseLevelChange(cb) { onNoiseLevelChangeCallback = cb; },
+        onWhisperProgress(cb) { onWhisperLoadProgress = cb; }
     };
 })();

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
     "@libsql/client": "^0.17.3",
     "@types/sqlite3": "^3.1.11",
     "bcryptjs": "^3.0.3",

@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/whisper.css">
 </head>
 <body>
 
@@ -546,7 +547,18 @@
         By: Ederson Wermeier 🧡
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/vosk-browser@0.0.3/dist/vosk.js"></script>
+    <!-- Whisper loading banner (Android only — aparece durante o download do modelo) -->
+    <div id="whisper-loading" class="whisper-loading hidden" role="status" aria-live="polite">
+        <div class="whisper-loading-inner">
+            <div class="whisper-spinner"></div>
+            <p class="whisper-loading-title">🎤 Preparando microfone inteligente...</p>
+            <p class="whisper-progress-label">Iniciando download do modelo...</p>
+            <div class="whisper-progress-track">
+                <div class="whisper-progress-bar" style="width: 0%"></div>
+            </div>
+            <p class="whisper-loading-hint">Isso acontece apenas na primeira vez (~75MB). Depois é instantâneo!</p>
+        </div>
+    </div>
     <script src="/js/config.js"></script>
     <script src="/js/robot-face.js"></script>
     <script src="/js/speech.js"></script>

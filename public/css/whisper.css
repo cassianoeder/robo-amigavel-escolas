@@ -1,0 +1,79 @@
+/* ===== WHISPER LOADING BANNER (Android) ===== */
+.whisper-loading {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--accent);
+    box-shadow: 0 4px 20px var(--accent-glow);
+    padding: 16px 24px;
+    border-radius: 16px;
+    z-index: 1000;
+    text-align: center;
+    color: white;
+    width: 90%;
+    max-width: 400px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.whisper-loading.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -20px);
+}
+
+.whisper-loading-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.whisper-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: whisperSpin 1s linear infinite;
+    margin-bottom: 4px;
+}
+
+@keyframes whisperSpin {
+    to { transform: rotate(360deg); }
+}
+
+.whisper-loading-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.whisper-progress-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.whisper-progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.whisper-progress-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.2s ease;
+}
+
+.whisper-loading-hint {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+}
