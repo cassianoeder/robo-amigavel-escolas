@@ -10,12 +10,15 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.3",
+    "@types/sqlite3": "^3.1.11",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "jose": "^6.2.3",
     "next": "16.2.7",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sqlite3": "^6.0.1",
+    "vosk-browser": "^0.0.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

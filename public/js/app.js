@@ -442,6 +442,55 @@ const App = (() => {
         });
     }
 
+    // ===== Admin functionality =====
+    async function checkAdminStatus() {
+        try {
+            console.log('[Admin] Verificando status de admin...');
+            const response = await fetch('/api/admin/check');
+            const data = await response.json();
+            console.log('[Admin] Resposta da API:', data);
+            
+            // Permitir acesso para edersonw9@gmail.com ou usuários admin marcados
+            if (data.user && (data.user.email === 'edersonw9@gmail.com' || data.isAdmin)) {
+                console.log('[Admin] Acesso permitido para:', data.user.email);
+                return true;
+            }
+            
+            console.log('[Admin] Acesso negado para:', data.user ? data.user.email : 'usuário não autenticado');
+            return false;
+        } catch (error) {
+            console.error('[Admin] Erro ao verificar status admin:', error);
+            return false;
+        }
+    }
+
+    async function initAdminButton() {
+        const btnAdmin = document.getElementById('btn-admin');
+        if (!btnAdmin) {
+            console.log('[Admin] Botão de admin não encontrado no DOM');
+            return;
+        }
+
+        console.log('[Admin] Botão de admin encontrado, verificando status...');
+        const isAdmin = await checkAdminStatus();
+        console.log('[Admin] Status de admin:', isAdmin);
+        
+        if (isAdmin) {
+            btnAdmin.classList.remove('hidden');
+            console.log('[Admin] Botão de admin agora visível');
+            btnAdmin.addEventListener('click', () => {
+                console.log('[Admin] Botão de admin clicado');
+                window.location.href = '/admin-simple';
+            });
+        } else {
+            btnAdmin.classList.add('hidden');
+            console.log('[Admin] Usuário não é admin, botão ocultado');
+        }
+    }
+
+    // Initialize admin button
+    initAdminButton();
+
     // Boot
     Config.init();
 })();

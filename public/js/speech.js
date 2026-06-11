@@ -47,8 +47,49 @@ const Speech = (() => {
 
     // ===== STT Engine Detection & Initialization =====
 
-    // Detect which STT engine to use (native Web Speech API only)
+    let voskModel = null;
+    let voskRecognizer = null;
+    let isVoskLoaded = false;
+    let voskLoading = false;
+
+    async function initVosk() {
+        if (voskLoading || isVoskLoaded || !window.Vosk) return;
+        voskLoading = true;
+        try {
+            console.log('[Vosk] Carregando modelo acústico...');
+            voskModel = await Vosk.createModel('/models/vosk-model-small-pt-0.3.tar.gz');
+            voskRecognizer = new voskModel.KaldiRecognizer();
+            voskRecognizer.setWords(true);
+
+            voskRecognizer.on("result", (message) => {
+                const transcript = message.result.text ? message.result.text.trim() : '';
+                if (transcript && onTranscript) {
+                    console.log(`[Vosk] Transcrição: "${transcript}"`);
+                    onTranscript(transcript);
+                }
+            });
+            isVoskLoaded = true;
+            console.log('[Vosk] Modelo carregado e pronto para uso!');
+            
+            // Auto-start se o microfone já estiver habilitado
+            if (micEnabled && !isListening) {
+                startListening();
+            }
+        } catch (e) {
+            console.error('[Vosk] Falha ao carregar modelo:', e);
+        } finally {
+            voskLoading = false;
+        }
+    }
+
+    // Detect which STT engine to use
     function detectSTTEngine() {
+        if (isMobile && window.Vosk) {
+            console.log('[STT] Engine selecionado: Vosk (WASM Offline)');
+            initVosk(); // Load asynchronously
+            return 'vosk';
+        }
+
         const hasNative = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
         if (hasNative) {
@@ -78,12 +119,17 @@ const Speech = (() => {
         }
 
         activeEngine = detectSTTEngine();
+        sttEngine = activeEngine;
+
+        if (sttEngine === 'vosk') {
+            return true;
+        }
 
         if (window.SpeechRecognition || window.webkitSpeechRecognition) {
             return initRecognition();
         }
 
-        console.error('[STT] Web Speech API não disponível neste navegador!');
+        console.error('[STT] Nenhum motor STT disponível!');
         return false;
     }
 
@@ -180,6 +226,17 @@ const Speech = (() => {
 
         if (sttEngine === 'fish') {
             return startFishListening();
+        }
+        
+        if (sttEngine === 'vosk') {
+            if (!isVoskLoaded) {
+                console.log('[Vosk] Aguardando carregamento do modelo...');
+                return;
+            }
+            if (isListening) return;
+            isListening = true;
+            if (onListeningStart) onListeningStart();
+            return;
         }
 
         if (!recognition || isListening) return;
@@ -287,6 +344,12 @@ const Speech = (() => {
     }
 
     function stopListening() {
+        if (sttEngine === 'vosk') {
+            isListening = false;
+            if (onListeningStop) onListeningStop();
+            return;
+        }
+
         // Native Web Speech API
         if (!recognition) return;
         // Cancela qualquer restart pendente
@@ -574,11 +637,16 @@ const Speech = (() => {
         if (audioContext) return; // already initialized
 
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                sampleRate: 16000 // Force 16kHz for Vosk
+            }});
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContextClass({ sampleRate: 16000 });
             analyser = audioContext.createAnalyser();
             microphone = audioContext.createMediaStreamSource(stream);
-            javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+            javascriptNode = audioContext.createScriptProcessor(4096, 1, 1);
 
             analyser.smoothingTimeConstant = 0.3;
             analyser.fftSize = 512;
@@ -618,6 +686,15 @@ const Speech = (() => {
                     }
                     currentSpeechMaxVolume = 0;
                     return;
+                }
+
+                // Feed Vosk Engine
+                if (sttEngine === 'vosk' && isVoskLoaded && voskRecognizer) {
+                    try {
+                        voskRecognizer.acceptWaveform(event.inputBuffer);
+                    } catch (err) {
+                        console.error('[Vosk] acceptWaveform error:', err);
+                    }
                 }
 
                 // Track max volume during active listening

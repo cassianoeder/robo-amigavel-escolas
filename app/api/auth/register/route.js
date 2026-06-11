@@ -28,9 +28,9 @@ export async function POST(request) {
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    // Insert user
+    // Insert user with default values for admin columns
     await db.execute({
-      sql: 'INSERT INTO users (email, password_hash) VALUES (?, ?)',
+      sql: 'INSERT INTO users (email, password_hash, is_admin, is_active) VALUES (?, ?, 0, 1)',
       args: [email, password_hash]
     });
 

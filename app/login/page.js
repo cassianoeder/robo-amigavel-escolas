@@ -30,6 +30,7 @@ export default function LoginPage() {
         throw new Error(data.error || 'Erro ao fazer login');
       }
 
+      // Redirecionamento padrão para a página do robô
       router.push('/robot.html');
       router.refresh();
     } catch (err) {

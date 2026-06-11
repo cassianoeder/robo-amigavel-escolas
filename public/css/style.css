@@ -557,8 +557,19 @@ body {
 
 .kids-btn.active {
     background: var(--accent);
-    border-color: var(--accent);
-    box-shadow: 0 0 15px var(--accent-glow);
+    border-color: var(--accent-glow);
+}
+
+.admin-btn {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+.admin-btn:hover {
+    background: rgba(16, 185, 129, 0.3);
+    border-color: rgba(16, 185, 129, 0.7);
+    transform: rotate(15deg) scale(1.1);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
 }
 
 /* Settings gear button */
