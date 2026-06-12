@@ -49,10 +49,19 @@ const Config = (() => {
         });
     }
 
+    // Obter parâmetro adminEdit para impersonation
+    function getAdminEditParam() {
+        if (typeof window === 'undefined') return '';
+        const urlParams = new URLSearchParams(window.location.search);
+        const adminEdit = urlParams.get('adminEdit');
+        return adminEdit ? `?userId=${adminEdit}` : '';
+    }
+
     // Load from server API
     async function load() {
         try {
-            const res = await fetch('/api/config');
+            const qs = getAdminEditParam();
+            const res = await fetch('/api/config' + qs);
             if (res.ok) {
                 const parsed = await res.json();
                 return { ...defaults, ...parsed };
@@ -66,7 +75,8 @@ const Config = (() => {
     // Save to server API
     async function save(config) {
         try {
-            await fetch('/api/config', {
+            const qs = getAdminEditParam();
+            await fetch('/api/config' + qs, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
@@ -391,6 +401,24 @@ const Config = (() => {
             if (!current.sessaoId) {
                 current.sessaoId = generateUUID();
                 await save(current);
+            }
+
+            // Aviso visual de Impersonation
+            const adminEditId = new URLSearchParams(window.location.search).get('adminEdit');
+            if (adminEditId) {
+                const header = document.querySelector('.config-header');
+                if (header) {
+                    const warning = document.createElement('div');
+                    warning.style.backgroundColor = '#ff4444';
+                    warning.style.color = 'white';
+                    warning.style.padding = '8px';
+                    warning.style.textAlign = 'center';
+                    warning.style.fontWeight = 'bold';
+                    warning.style.borderRadius = '8px';
+                    warning.style.marginTop = '10px';
+                    warning.innerHTML = `⚠️ MODO ADMIN: Editando robô do usuário #${adminEditId}`;
+                    header.appendChild(warning);
+                }
             }
 
             populateForm();

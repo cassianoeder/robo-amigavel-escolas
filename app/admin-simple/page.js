@@ -9,6 +9,81 @@ export default function SimpleAdmin() {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showRobotConfig, setShowRobotConfig] = useState(false);
+  const [processingId, setProcessingId] = useState(null);
+
+  const fetchUsers = async () => {
+    try {
+      const usersResponse = await fetch('/api/admin/users');
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json();
+        setUsersWithRobots(usersData.users || []);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+    }
+  };
+
+  const handleToggleStatus = async (targetUser) => {
+    if (!confirm(`Deseja realmente ${targetUser.is_active ? 'bloquear' : 'desbloquear'} o usuário ${targetUser.email}?`)) return;
+    setProcessingId(targetUser.id);
+    try {
+      await fetch(`/api/admin/users/${targetUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !targetUser.is_active })
+      });
+      await fetchUsers();
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao alterar status.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleToggleAdmin = async (targetUser) => {
+    if (!confirm(`Deseja realmente ${targetUser.is_admin ? 'remover o cargo de admin' : 'promover a admin'} o usuário ${targetUser.email}?`)) return;
+    setProcessingId(targetUser.id);
+    try {
+      const res = await fetch(`/api/admin/users/${targetUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_admin: !targetUser.is_admin })
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        alert(error.error || 'Erro ao alterar admin.');
+      }
+      await fetchUsers();
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao alterar admin.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleDeleteUser = async (targetUser) => {
+    const isSure = window.confirm(`CUIDADO: Você está prestes a EXCLUIR DEFINITIVAMENTE o usuário ${targetUser.email} e todos os seus robôs. Deseja continuar?`);
+    if (!isSure) return;
+    
+    setProcessingId(targetUser.id);
+    try {
+      const res = await fetch(`/api/admin/users/${targetUser.id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        alert(error.error || 'Erro ao excluir usuário.');
+      }
+      await fetchUsers();
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao excluir usuário.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -21,29 +96,7 @@ export default function SimpleAdmin() {
           setUser({ ...data.user, isAdmin: true });
           
           // Buscar usuários reais do banco
-          try {
-            const usersResponse = await fetch('/api/admin/users');
-            console.log('[Admin] Status da resposta users:', usersResponse.status);
-            
-            if (usersResponse.ok) {
-              const usersData = await usersResponse.json();
-              console.log('[Admin] Dados dos usuários:', usersData);
-              
-              if (usersData.users && usersData.users.length > 0) {
-                // A API agora já retorna os usuários com os robôs aninhados
-                setUsersWithRobots(usersData.users);
-              } else {
-                setUsersWithRobots([]);
-              }
-            } else {
-              const errorData = await usersResponse.json();
-              console.error('[Admin] Erro ao buscar usuários:', errorData);
-              setUsersWithRobots([]);
-            }
-          } catch (error) {
-            console.error('Erro ao buscar usuários:', error);
-            setUsersWithRobots([]);
-          }
+          await fetchUsers();
         }
       } catch (error) {
         console.error('Erro ao verificar admin:', error);
@@ -148,19 +201,54 @@ export default function SimpleAdmin() {
             </div>
           ) : (
             <div className="space-y-3">
-              {usersWithRobots.map(user => (
-                <div key={user.id} className="flex justify-between items-center p-3 bg-white/[0.02] rounded-lg">
-                  <div>
-                    <p className="font-medium">{user.email}</p>
-                    <p className="text-sm text-white/50">{new Date(user.created_at).toLocaleDateString('pt-BR')}</p>
+              {usersWithRobots.map(u => (
+                <div key={u.id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-white/[0.02] border border-white/[0.05] rounded-xl hover:bg-white/[0.04] transition-colors gap-4">
+                  <div className="flex-1">
+                    <p className="font-medium text-lg flex items-center gap-2">
+                      {u.email}
+                      {u.is_admin && <span className="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-purple-500/20 text-purple-300">Admin</span>}
+                      {!u.is_active && <span className="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-red-500/20 text-red-300">Bloqueado</span>}
+                    </p>
+                    <p className="text-sm text-white/50">Criado em: {new Date(u.created_at).toLocaleDateString('pt-BR')}</p>
+                    
+                    {u.robots && u.robots.length > 0 && (
+                      <div className="mt-2 text-xs text-white/70 bg-black/20 p-2 rounded-lg inline-block">
+                        🤖 Robô ativo: <span className="font-semibold text-emerald-400">{u.robots[0].name}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex gap-2">
-                    <span className={`px-2 py-1 rounded-full text-xs ${user.is_admin ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'}`}>
-                      {user.is_admin ? 'Admin' : 'Usuário'}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs ${user.is_active ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}`}>
-                      {user.is_active ? 'Ativo' : 'Inativo'}
-                    </span>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    <Link 
+                      href={`/robot?adminEdit=${u.id}`}
+                      className="px-3 py-1.5 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-lg text-sm transition-colors border border-indigo-500/30 flex items-center gap-1"
+                    >
+                      ⚙️ Editar Robô
+                    </Link>
+                    
+                    <button 
+                      onClick={() => handleToggleAdmin(u)}
+                      disabled={processingId === u.id || user.userId === u.id}
+                      className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors disabled:opacity-50"
+                    >
+                      {u.is_admin ? 'Remover Admin' : 'Tornar Admin'}
+                    </button>
+                    
+                    <button 
+                      onClick={() => handleToggleStatus(u)}
+                      disabled={processingId === u.id || user.userId === u.id}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-colors disabled:opacity-50 ${u.is_active ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-300' : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300'}`}
+                    >
+                      {u.is_active ? 'Bloquear' : 'Desbloquear'}
+                    </button>
+                    
+                    <button 
+                      onClick={() => handleDeleteUser(u)}
+                      disabled={processingId === u.id || user.userId === u.id}
+                      className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm transition-colors border border-red-500/30 disabled:opacity-50"
+                    >
+                      🗑️ Excluir
+                    </button>
                   </div>
                 </div>
               ))}

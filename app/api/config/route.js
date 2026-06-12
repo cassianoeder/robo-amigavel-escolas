@@ -9,9 +9,18 @@ export async function GET() {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
+    // Suporte para impersonation (admin vendo outro usuário)
+    const { searchParams } = new URL(request.url);
+    const targetUserId = searchParams.get('userId');
+    let effectiveUserId = user.userId;
+
+    if (targetUserId && user.isAdmin) {
+      effectiveUserId = parseInt(targetUserId);
+    }
+
     const result = await db.execute({
       sql: 'SELECT * FROM robot_configs WHERE user_id = ?',
-      args: [user.userId]
+      args: [effectiveUserId]
     });
 
     if (result.rows.length === 0) {
@@ -30,6 +39,15 @@ export async function POST(request) {
     const user = await getUserFromToken();
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    // Suporte para impersonation (admin salvando em outro usuário)
+    const { searchParams } = new URL(request.url);
+    const targetUserId = searchParams.get('userId');
+    let effectiveUserId = user.userId;
+
+    if (targetUserId && user.isAdmin) {
+      effectiveUserId = parseInt(targetUserId);
     }
 
     const body = await request.json();
@@ -128,19 +146,17 @@ export async function POST(request) {
           updated_at = CURRENT_TIMESTAMP
       `,
       args: [
-        user.userId, webhookUrl, jwtToken, corDestaque, vozIndex,
-        velocidadeFala, timeoutSonolencia, sessaoId, isKidsMode ? 1 : 0, topicDia, volumeRobo,
-        robotName, nomeProfessor, pais, estado, cidade, nomeEscola, salaLocal,
-        codigoBNCC, descricaoBNCC,
-        hatEnabled ? 1 : 0, hatColor, hatLogo,
+        effectiveUserId, webhookUrl, jwtToken, corDestaque, vozIndex,
+        parseFloat(velocidadeFala), parseInt(timeoutSonolencia), sessaoId, isKidsMode ? 1 : 0, sanitize(topicDia), parseInt(volumeRobo),
+        sanitize(robotName), sanitize(nomeProfessor), sanitize(pais), sanitize(estado), sanitize(cidade), sanitize(nomeEscola), sanitize(salaLocal),
+        sanitize(codigoBNCC), sanitizeLarge(descricaoBNCC), hatEnabled ? 1 : 0, sanitize(hatColor), sanitize(hatLogo),
         sanitize(nomeDiretor), sanitize(nomeRecepcionista), sanitize(nomeSecretario),
-        sanitize(disciplina), sanitize(objetivoAula), sanitize(turno),
-        sanitizeLarge(proximosEventos), sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje),
+        sanitize(disciplina), sanitizeLarge(objetivoAula), sanitize(turno), sanitizeLarge(proximosEventos), sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje),
         fishSttEnabled ? 1 : 0, fishTtsEnabled ? 1 : 0
       ]
     });
 
-    return NextResponse.json({ message: 'Configuração salva com sucesso' });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Save config error:', error);
     return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
