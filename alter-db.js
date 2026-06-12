@@ -19,7 +19,9 @@ async function addColumns() {
     'descricaoBNCC TEXT',
     'hatEnabled INTEGER',
     'hatColor TEXT',
-    'hatLogo TEXT'
+    'hatLogo TEXT',
+    'elevenlabs_enabled INTEGER',
+    'elevenlabs_agent_id TEXT'
   ];
 
   for (const col of columns) {

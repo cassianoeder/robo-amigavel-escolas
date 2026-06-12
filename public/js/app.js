@@ -278,8 +278,65 @@ const App = (() => {
         }, 100);
 
         // Request permissions
-        const micOk = await Speech.requestMicPermission();
         const camOk = await Motion.requestCamera();
+
+        if (cfg.elevenlabsEnabled && cfg.elevenlabsAgentId) {
+            console.log('[ElevenLabs] Ativando widget conversational...');
+            
+            // Hide native mic
+            const bottomControls = document.querySelector('.bottom-controls');
+            if (bottomControls) bottomControls.style.display = 'none';
+
+            // Inject script
+            if (!document.getElementById('elevenlabs-script')) {
+                const script = document.createElement('script');
+                script.id = 'elevenlabs-script';
+                script.src = 'https://elevenlabs.io/convai-widget/index.js';
+                script.async = true;
+                document.body.appendChild(script);
+            }
+
+            // Inject widget element
+            let widget = document.querySelector('elevenlabs-convai');
+            if (!widget) {
+                widget = document.createElement('elevenlabs-convai');
+                document.body.appendChild(widget);
+            }
+            widget.setAttribute('agent-id', cfg.elevenlabsAgentId);
+            widget.style.display = 'block';
+
+            // Initialize systems needed for face animation
+            RobotFace.init();
+            if (camOk) Motion.startDetection();
+
+            // Setup simplified motion callback
+            Motion.onMotionDetected((direction) => {
+                RobotFace.lookAt(direction.dx * 0.8, direction.dy * 0.5);
+                lastActivityTime = Date.now();
+                resetInactivityTimer();
+                if (isSleepy) {
+                    isSleepy = false;
+                    RobotFace.wakeUp();
+                }
+            });
+            Motion.onNoMotion(handleNoMotion);
+
+            resetInactivityTimer();
+            lastActivityTime = Date.now();
+
+            return; // End early, bypass native STT/TTS setup
+        }
+
+        const micOk = await Speech.requestMicPermission();
+
+        // --- Fluxo Nativo (sem ElevenLabs) ---
+        // Restore bottom controls if they were hidden
+        const bottomControls = document.querySelector('.bottom-controls');
+        if (bottomControls) bottomControls.style.display = 'flex';
+        
+        // Hide ElevenLabs widget if present
+        const widget = document.querySelector('elevenlabs-convai');
+        if (widget) widget.style.display = 'none';
 
         if (!micOk) {
             alert('O robô precisa de permissão de microfone para funcionar!');
@@ -422,6 +479,9 @@ const App = (() => {
             document.body.setAttribute('data-theme', cfg.corDestaque);
             // Apply hat configuration
             applyHatConfig(cfg);
+            
+            // Restart robot logic completely to toggle ElevenLabs easily
+            startRobot(cfg);
         }
     });
 

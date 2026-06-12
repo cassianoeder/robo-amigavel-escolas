@@ -271,6 +271,25 @@
                     </details>
                 </div>
 
+                <!-- ===== SEÇÃO: ELEVENLABS ===== -->
+                <div class="section-header full-width">
+                    <span class="section-icon">🎙️</span>
+                    <h3 class="section-title">ElevenLabs (Opcional)</h3>
+                </div>
+
+                <div class="field-group full-width">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="cfg-elevenlabs-enabled">
+                        <span>Ativar ElevenLabs (Conversational AI Agent)</span>
+                    </label>
+                    <small class="field-hint">Se ativado, o robô usará o widget da ElevenLabs para reconhecimento e fala com baixa latência.</small>
+                </div>
+
+                <div class="field-group full-width elevenlabs-config-group hidden" id="elevenlabs-config-container">
+                    <label for="cfg-elevenlabs-agent">ID do Agente ElevenLabs</label>
+                    <input type="text" id="cfg-elevenlabs-agent" placeholder="ex: agent_5101ktxnk2mtfbytgfyr71x7vnga">
+                </div>
+
                 <div class="field-group full-width" style="display: flex; gap: 12px; margin-top: 8px;">
                     <button type="submit" class="btn-primary" id="btn-save-config" style="margin-top: 0;">
                         <span class="btn-icon">🤖</span> Ativar/Salvar

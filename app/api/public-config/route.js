@@ -49,6 +49,8 @@ export async function POST(request) {
       publicEnabled: config.public_enabled === 1 || config.public_enabled === true,
       publicPassword: config.public_password || '',
       publicSlug: config.public_slug || '',
+      elevenlabsEnabled: config.elevenlabs_enabled === 1 || config.elevenlabs_enabled === true,
+      elevenlabsAgentId: config.elevenlabs_agent_id || '',
     };
 
     return NextResponse.json(publicConfig);

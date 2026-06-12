@@ -34,6 +34,8 @@ export async function GET(request) {
       publicEnabled: row.public_enabled === 1 || row.public_enabled === true,
       publicPassword: row.public_password || '',
       publicSlug: row.public_slug || '',
+      elevenlabsEnabled: row.elevenlabs_enabled === 1 || row.elevenlabs_enabled === true,
+      elevenlabsAgentId: row.elevenlabs_agent_id || '',
     };
 
     return NextResponse.json(config);
@@ -94,8 +96,12 @@ export async function POST(request) {
       hatColor = '#333333',
       hatLogo = '',
       publicEnabled = false,
-      publicPassword = ''
+      publicPassword = '',
+      elevenlabsEnabled = false,
+      elevenlabsAgentId = ''
     } = body;
+
+    console.log('[config POST] publicEnabled received:', publicEnabled, '| publicPassword:', publicPassword ? '***' : '(empty)');
 
     const sanitize = (str) => {
       if (typeof str !== 'string') return '';
@@ -135,8 +141,9 @@ export async function POST(request) {
           codigoBNCC, descricaoBNCC, hatEnabled, hatColor, hatLogo,
           nomeDiretor, nomeRecepcionista, nomeSecretario,
           disciplina, objetivoAula, turno, proximosEventos, avisosGerais, eventosHoje,
-          public_enabled, public_password, public_slug
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          public_enabled, public_password, public_slug,
+          elevenlabs_enabled, elevenlabs_agent_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           webhookUrl = excluded.webhookUrl,
           jwtToken = excluded.jwtToken,
@@ -172,6 +179,8 @@ export async function POST(request) {
           public_enabled = excluded.public_enabled,
           public_password = excluded.public_password,
           public_slug = excluded.public_slug,
+          elevenlabs_enabled = excluded.elevenlabs_enabled,
+          elevenlabs_agent_id = excluded.elevenlabs_agent_id,
           updated_at = CURRENT_TIMESTAMP
       `,
       args: [
@@ -181,7 +190,8 @@ export async function POST(request) {
         sanitize(codigoBNCC), sanitizeLarge(descricaoBNCC), hatEnabled ? 1 : 0, sanitize(hatColor), sanitize(hatLogo),
         sanitize(nomeDiretor), sanitize(nomeRecepcionista), sanitize(nomeSecretario),
         sanitize(disciplina), sanitizeLarge(objetivoAula), sanitize(turno), sanitizeLarge(proximosEventos), sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje),
-        publicEnabled ? 1 : 0, sanitize(publicPassword), currentSlug
+        publicEnabled ? 1 : 0, sanitize(publicPassword), currentSlug,
+        elevenlabsEnabled ? 1 : 0, sanitize(elevenlabsAgentId)
       ]
     });
 

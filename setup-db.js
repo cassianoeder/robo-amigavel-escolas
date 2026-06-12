@@ -72,6 +72,20 @@ async function setupDb() {
       console.log('  fish_tts_enabled already exists or error (safe to ignore):', e.message);
     }
 
+    console.log('Adding elevenlabs_enabled column (idempotent)...');
+    try {
+      await client.execute(`ALTER TABLE robot_configs ADD COLUMN elevenlabs_enabled INTEGER DEFAULT 0`);
+    } catch (e) {
+      console.log('  elevenlabs_enabled already exists or error (safe to ignore):', e.message);
+    }
+
+    console.log('Adding elevenlabs_agent_id column (idempotent)...');
+    try {
+      await client.execute(`ALTER TABLE robot_configs ADD COLUMN elevenlabs_agent_id TEXT`);
+    } catch (e) {
+      console.log('  elevenlabs_agent_id already exists or error (safe to ignore):', e.message);
+    }
+
     console.log('Database setup complete!');
   } catch (err) {
     console.error('Error setting up database:', err);

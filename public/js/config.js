@@ -38,21 +38,22 @@ const Config = (() => {
         nomeSecretario: '',     // Nome do secretária (opcional)
         publicEnabled: false,   // Link público ativado
         publicPassword: '',     // Senha do link público
-        publicSlug: ''           // Slug único para URL pública
+        elevenlabsEnabled: false, // ElevenLabs Conversational AI
+        elevenlabsAgentId: ''     // ElevenLabs Agent ID
     };
 
     const BAD_WORDS = [
         'porra', 'caralho', 'buceta', 'puta', 'merda', 'cu', 'piroca', 'rola', 'cacete',
         'foder', 'foda', 'viado', 'puto', 'arrombado', 'corno', 'pica', 'vadia',
         'putaria', 'suruba', 'cuzao', 'cuzão', 'boceta', 'fudido', 'macaco',
-        'bicha', 'sapatão', 'sapatao', 'boquete', 'siririca', 'punheta'
+        'bicha', 'sapatão', 'sapatao', 'boquete', 'siririca', 'punheta', 'carralho', 'pirroca', 'gay'
     ];
 
     function containsProfanity(text) {
         if (!text) return false;
         const normalizedText = text.toLowerCase()
             .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove acentos
-            
+
         return BAD_WORDS.some(word => {
             const regex = new RegExp(`\\b${word}\\b`, 'i');
             return regex.test(normalizedText);
@@ -146,6 +147,9 @@ const Config = (() => {
     const publicPasswordInput = document.getElementById('cfg-public-password');
     const publicUrlInput = document.getElementById('cfg-public-url');
     const publicLinkContainer = document.getElementById('public-link-container');
+    const elevenlabsEnabledCheckbox = document.getElementById('cfg-elevenlabs-enabled');
+    const elevenlabsAgentIdInput = document.getElementById('cfg-elevenlabs-agent');
+    const elevenlabsConfigContainer = document.getElementById('elevenlabs-config-container');
     const authOverlay = document.getElementById('public-auth-overlay');
     const authForm = document.getElementById('public-auth-form');
     const authPasswordInput = document.getElementById('auth-password');
@@ -205,29 +209,35 @@ const Config = (() => {
         // Public link fields
         if (publicEnabledCheckbox) {
             publicEnabledCheckbox.checked = !!current.publicEnabled;
-            
+
             // Toggle visibility of password and URL based on checkbox
             if (publicLinkContainer) {
                 publicLinkContainer.classList.toggle('hidden', !publicEnabledCheckbox.checked);
             }
-            
-            // Build the URL based on slug (generated after first save with public enabled)
-            if (publicUrlInput) {
-                if (current.publicSlug) {
-                    const url = new URL(window.location.href);
-                    url.search = '';
-                    url.searchParams.set('shareId', current.publicSlug);
-                    publicUrlInput.value = url.toString();
-                } else if (publicEnabledCheckbox.checked) {
-                    publicUrlInput.value = 'Salve as configurações para gerar o link';
-                } else {
-                    publicUrlInput.value = '';
-                }
+
+            // Build the URL based on current DB user_id
+            if (publicUrlInput && current.user_id) {
+                const url = new URL(window.location.href);
+                url.search = '';
+                url.searchParams.set('shareId', current.user_id);
+                publicUrlInput.value = url.toString();
             }
         }
         if (publicPasswordInput) {
             publicPasswordInput.value = current.publicPassword || '';
         }
+
+        // ElevenLabs fields
+        if (elevenlabsEnabledCheckbox) {
+            elevenlabsEnabledCheckbox.checked = !!current.elevenlabsEnabled;
+            if (elevenlabsConfigContainer) {
+                elevenlabsConfigContainer.classList.toggle('hidden', !elevenlabsEnabledCheckbox.checked);
+            }
+        }
+        if (elevenlabsAgentIdInput) {
+            elevenlabsAgentIdInput.value = current.elevenlabsAgentId || '';
+        }
+
         // Enable/disable test button based on webhook
         if (testWebhookBtn) {
             testWebhookBtn.disabled = !webhookInput.value.trim();
@@ -413,7 +423,7 @@ const Config = (() => {
         current.nomeDiretor = diretorInput ? diretorInput.value.trim() : '';
         current.nomeRecepcionista = recepcionistaInput ? recepcionistaInput.value.trim() : '';
         current.nomeSecretario = secretarioInput ? secretarioInput.value.trim() : '';
-        
+
         // Preserve topic/day fields
         current.topicDia = current.topicDia || '';
         current.codigoBNCC = current.codigoBNCC || '';
@@ -424,7 +434,7 @@ const Config = (() => {
         current.proximosEventos = current.proximosEventos || '';
         current.eventosHoje = current.eventosHoje || '';
         current.avisosGerais = current.avisosGerais || '';
-        
+
         current.corDestaque = selectedColor ? selectedColor.dataset.color : 'azul-escuro';
         current.vozIndex = parseInt(voiceSelect.value) || 0;
         current.velocidadeFala = parseFloat(rateSlider.value) || 1.0;
@@ -435,6 +445,8 @@ const Config = (() => {
         current.hatLogo = hatLogoInput ? hatLogoInput.value : '';
         current.publicEnabled = publicEnabledCheckbox ? publicEnabledCheckbox.checked : false;
         current.publicPassword = publicPasswordInput ? publicPasswordInput.value.trim() : '';
+        current.elevenlabsEnabled = elevenlabsEnabledCheckbox ? elevenlabsEnabledCheckbox.checked : false;
+        current.elevenlabsAgentId = elevenlabsAgentIdInput ? elevenlabsAgentIdInput.value.trim() : '';
 
         // Ensure session ID
         if (!current.sessaoId) {
@@ -443,12 +455,6 @@ const Config = (() => {
 
         await save(current);
         document.body.setAttribute('data-theme', current.corDestaque);
-
-        // Reload config from server to get generated slug
-        const refreshed = await load();
-        if (refreshed) {
-            current = { ...current, ...refreshed };
-        }
 
         // CRITICAL FOR MOBILE: Unlock TTS inside user gesture (tap/click)
         // Android Chrome blocks speechSynthesis.speak() unless triggered from user gesture
@@ -483,26 +489,26 @@ const Config = (() => {
             if (shareId) {
                 // MODO VISITANTE
                 if (settingsBtn) settingsBtn.style.display = 'none'; // Esconde engrenagem
-                
+
                 return new Promise((resolve) => {
                     authOverlay.classList.add('active');
-                    
+
                     authForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
                         const pwd = authPasswordInput.value;
-                        
+
                         try {
                             const res = await fetch('/api/public-config', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ shareId, password: pwd })
                             });
-                            
+
                             if (res.ok) {
                                 current = { ...defaults, ...(await res.json()) };
                                 authOverlay.classList.remove('active');
                                 authErrorMsg.style.display = 'none';
-                                
+
                                 // Não vamos permitir editar config no modo visitante, então não chamamos populateForm.
                                 // Apenas carregamos as vozes para que o TTS funcione.
                                 loadVoices();
@@ -522,6 +528,12 @@ const Config = (() => {
             if (publicEnabledCheckbox && publicLinkContainer) {
                 publicEnabledCheckbox.addEventListener('change', (e) => {
                     publicLinkContainer.classList.toggle('hidden', !e.target.checked);
+                });
+            }
+
+            if (elevenlabsEnabledCheckbox && elevenlabsConfigContainer) {
+                elevenlabsEnabledCheckbox.addEventListener('change', (e) => {
+                    elevenlabsConfigContainer.classList.toggle('hidden', !e.target.checked);
                 });
             }
 
@@ -573,19 +585,19 @@ const Config = (() => {
             const fullscreenBtn = document.getElementById('btn-fullscreen');
             if (fullscreenBtn) {
                 const requestFS = document.documentElement.requestFullscreen ||
-                                  document.documentElement.webkitRequestFullscreen ||
-                                  document.documentElement.mozRequestFullScreen ||
-                                  document.documentElement.msRequestFullscreen;
+                    document.documentElement.webkitRequestFullscreen ||
+                    document.documentElement.mozRequestFullScreen ||
+                    document.documentElement.msRequestFullscreen;
 
                 const exitFS = document.exitFullscreen ||
-                               document.webkitExitFullscreen ||
-                               document.mozCancelFullScreen ||
-                               document.msExitFullscreen;
+                    document.webkitExitFullscreen ||
+                    document.mozCancelFullScreen ||
+                    document.msExitFullscreen;
 
                 const getFSElement = () => document.fullscreenElement ||
-                                           document.webkitFullscreenElement ||
-                                           document.mozFullScreenElement ||
-                                           document.msFullscreenElement;
+                    document.webkitFullscreenElement ||
+                    document.mozFullScreenElement ||
+                    document.msFullscreenElement;
 
                 const toggleFullscreen = () => {
                     if (!getFSElement()) {
@@ -628,33 +640,33 @@ const Config = (() => {
                 hatLogoInput.addEventListener('change', async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
-                    
+
                     // Validate file size (500KB max)
                     if (file.size > 500 * 1024) {
                         alert('O logo deve ter no máximo 500KB.');
                         hatLogoInput.value = '';
                         return;
                     }
-                    
+
                     // Validate file type
                     if (!file.type.match('image/(png|svg\\+xml)')) {
                         alert('Apenas arquivos PNG ou SVG são permitidos.');
                         hatLogoInput.value = '';
                         return;
                     }
-                    
+
                     // Convert to base64
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         const base64 = event.target.result;
                         hatLogoInput.value = base64;
-                        
+
                         // Show preview
                         if (hatLogoPreview) {
                             hatLogoPreview.src = base64;
                             hatLogoPreview.classList.remove('hidden');
                         }
-                        
+
                         // Show remove button
                         const removeBtn = document.getElementById('btn-remove-logo');
                         if (removeBtn) {
@@ -748,7 +760,7 @@ const Config = (() => {
             if (topicForm) {
                 topicForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    
+
                     const topic = topicInput ? topicInput.value.trim().substring(0, 70) : '';
                     const codigoBNCC = bnccCodigoInput ? bnccCodigoInput.value.trim() : '';
                     const descricaoBNCC = bnccDescricaoInput ? bnccDescricaoInput.value.trim() : '';

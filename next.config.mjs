@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'standalone',
     // Deprecated middleware to proxy issue
     // but also we need allowedDevOrigins
     serverExternalPackages: ['@libsql/client', 'bcryptjs'],
