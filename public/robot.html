@@ -201,26 +201,27 @@
                     </select>
                 </div>
 
-                <!-- ===== SEÇÃO: FISH.AUDIO (OPCIONAL, PAGO) ===== -->
+                <!-- ===== SEÇÃO: COMPARTILHAMENTO PÚBLICO ===== -->
                 <div class="section-header full-width">
-                    <span class="section-icon">🐟</span>
-                    <h3 class="section-title">Fish.audio (opcional, pago)</h3>
+                    <span class="section-icon">🔗</span>
+                    <h3 class="section-title">Compartilhamento Público</h3>
                 </div>
 
                 <div class="field-group full-width">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="cfg-fish-stt-enabled">
-                        <span>Usar Fish.audio para reconhecimento de voz (STT)</span>
+                        <input type="checkbox" id="cfg-public-enabled">
+                        <span>Permitir acesso público a este robô</span>
                     </label>
-                    <small class="field-hint">Resolve problemas de STT em tablets Android. Requer API key Fish configurada no n8n. <span id="fish-cap-hint"></span></small>
+                    <small class="field-hint">Com isso ativo, qualquer pessoa com o link e a senha abaixo poderá interagir com o seu robô.</small>
                 </div>
 
-                <div class="field-group full-width">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="cfg-fish-tts-enabled">
-                        <span>Usar Fish.audio para síntese de voz neural (TTS)</span>
-                    </label>
-                    <small class="field-hint">Voz mais natural que a do navegador. Requer fish_voice_id configurado no n8n.</small>
+                <div class="field-group full-width public-link-config hidden" id="public-link-container">
+                    <label for="cfg-public-password">Senha de Acesso do Robô</label>
+                    <input type="text" id="cfg-public-password" placeholder="Defina uma senha (ex: escola123)">
+                    
+                    <label for="cfg-public-url" style="margin-top: 10px;">Link para compartilhar</label>
+                    <input type="text" id="cfg-public-url" readonly style="background: #f5f5f5; cursor: copy;" onclick="this.select();">
+                    <small class="field-hint">Este link só funcionará após você salvar as configurações.</small>
                 </div>
 
                 <!-- Payload Manual -->
@@ -281,6 +282,31 @@
 
                     <button type="button" class="btn-secondary" id="btn-close-config" style="display: none;">
                         <span class="btn-icon">❌</span> Fechar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== PUBLIC AUTH MODAL ===== -->
+    <div id="public-auth-overlay" class="modal-overlay">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <div class="modal-icon">🔒</div>
+                <h1 id="auth-modal-title">Acesso Protegido</h1>
+                <p class="modal-subtitle">Insira a senha para acessar este robô</p>
+            </div>
+
+            <form id="public-auth-form" class="modal-body" autocomplete="off" style="padding-top: 10px;">
+                <div class="field-group full-width">
+                    <input type="password" id="auth-password" placeholder="Senha do robô" required style="text-align: center; font-size: 1.1rem;">
+                </div>
+                
+                <div id="auth-error-msg" class="field-hint" style="color: #ff4444; display: none; margin-top: -10px; margin-bottom: 10px;">Senha incorreta.</div>
+
+                <div class="field-group full-width">
+                    <button type="submit" class="btn-primary" id="btn-auth-submit" style="margin-top: 0;">
+                        <span class="btn-icon">🔓</span> Entrar
                     </button>
                 </div>
             </form>

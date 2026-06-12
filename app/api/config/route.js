@@ -84,8 +84,8 @@ export async function POST(request) {
       hatEnabled = false,
       hatColor = '#333333',
       hatLogo = '',
-      fishSttEnabled = false,
-      fishTtsEnabled = false
+      publicEnabled = false,
+      publicPassword = ''
     } = body;
 
     const sanitize = (str) => {
@@ -107,7 +107,7 @@ export async function POST(request) {
           codigoBNCC, descricaoBNCC, hatEnabled, hatColor, hatLogo,
           nomeDiretor, nomeRecepcionista, nomeSecretario,
           disciplina, objetivoAula, turno, proximosEventos, avisosGerais, eventosHoje,
-          fish_stt_enabled, fish_tts_enabled
+          public_enabled, public_password
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           webhookUrl = excluded.webhookUrl,
@@ -141,8 +141,8 @@ export async function POST(request) {
           proximosEventos = excluded.proximosEventos,
           avisosGerais = excluded.avisosGerais,
           eventosHoje = excluded.eventosHoje,
-          fish_stt_enabled = excluded.fish_stt_enabled,
-          fish_tts_enabled = excluded.fish_tts_enabled,
+          public_enabled = excluded.public_enabled,
+          public_password = excluded.public_password,
           updated_at = CURRENT_TIMESTAMP
       `,
       args: [
@@ -152,7 +152,7 @@ export async function POST(request) {
         sanitize(codigoBNCC), sanitizeLarge(descricaoBNCC), hatEnabled ? 1 : 0, sanitize(hatColor), sanitize(hatLogo),
         sanitize(nomeDiretor), sanitize(nomeRecepcionista), sanitize(nomeSecretario),
         sanitize(disciplina), sanitizeLarge(objetivoAula), sanitize(turno), sanitizeLarge(proximosEventos), sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje),
-        fishSttEnabled ? 1 : 0, fishTtsEnabled ? 1 : 0
+        publicEnabled ? 1 : 0, sanitize(publicPassword)
       ]
     });
 

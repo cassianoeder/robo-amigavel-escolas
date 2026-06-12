@@ -267,7 +267,7 @@ const App = (() => {
 
     async function startRobot(cfg) {
         config = cfg;
-        console.log('[Robô] Iniciando com config:', { webhook: cfg.webhookUrl, cor: cfg.corDestaque, fish: { stt: cfg.fishSttEnabled, tts: cfg.fishTtsEnabled } });
+        console.log('[Robô] Iniciando com config:', { webhook: cfg.webhookUrl, cor: cfg.corDestaque });
 
         // Show robot face
         robotContainer.classList.remove('hidden');
@@ -291,9 +291,6 @@ const App = (() => {
 
         // Initialize speech recognition
         Speech.init();
-
-        // Fish audio (opcional) — só efetiva se capability OK
-        Speech.configureFish(!!cfg.fishSttEnabled, !!cfg.fishTtsEnabled);
 
         // Set up callbacks
         Speech.onTranscript(handleTranscript);

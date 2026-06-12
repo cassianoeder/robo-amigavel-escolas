@@ -36,9 +36,36 @@ const Config = (() => {
         nomeDiretor: '',        // Nome do diretor (opcional)
         nomeRecepcionista: '',  // Nome do recepcionista (opcional)
         nomeSecretario: '',     // Nome do secretária (opcional)
-        fishSttEnabled: false,  // Fish STT (opcional, pago)
-        fishTtsEnabled: false   // Fish TTS (opcional, pago)
+        publicEnabled: false,   // Link público ativado
+        publicPassword: ''      // Senha do link público
     };
+
+    const BAD_WORDS = [
+        'porra', 'caralho', 'buceta', 'puta', 'merda', 'cu', 'piroca', 'rola', 'cacete',
+        'foder', 'foda', 'viado', 'puto', 'arrombado', 'corno', 'pica', 'vadia',
+        'putaria', 'suruba', 'cuzao', 'cuzão', 'boceta', 'fudido', 'macaco',
+        'bicha', 'sapatão', 'sapatao', 'boquete', 'siririca', 'punheta'
+    ];
+
+    function containsProfanity(text) {
+        if (!text) return false;
+        const normalizedText = text.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove acentos
+            
+        return BAD_WORDS.some(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'i');
+            return regex.test(normalizedText);
+        });
+    }
+
+    function checkProfanityInFields(fields) {
+        for (const field of fields) {
+            if (typeof field === 'string' && containsProfanity(field)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     // Generate UUID v4
     function generateUUID() {
@@ -114,8 +141,14 @@ const Config = (() => {
     const hatColorInput = document.getElementById('cfg-hat-color');
     const hatLogoInput = document.getElementById('cfg-hat-logo');
     const hatLogoPreview = document.getElementById('hat-logo-preview');
-    const fishSttCheckbox = document.getElementById('cfg-fish-stt-enabled');
-    const fishTtsCheckbox = document.getElementById('cfg-fish-tts-enabled');
+    const publicEnabledCheckbox = document.getElementById('cfg-public-enabled');
+    const publicPasswordInput = document.getElementById('cfg-public-password');
+    const publicUrlInput = document.getElementById('cfg-public-url');
+    const publicLinkContainer = document.getElementById('public-link-container');
+    const authOverlay = document.getElementById('public-auth-overlay');
+    const authForm = document.getElementById('public-auth-form');
+    const authPasswordInput = document.getElementById('auth-password');
+    const authErrorMsg = document.getElementById('auth-error-msg');
     const settingsBtn = document.getElementById('btn-settings');
     const closeConfigBtn = document.getElementById('btn-close-config');
     const kidsBtn = document.getElementById('btn-kids-mode');
@@ -168,23 +201,25 @@ const Config = (() => {
             hatLogoPreview.classList.remove('hidden');
         }
 
-        // Fish toggles (desabilitar se capability for falsa)
-        const fishCapOk = !!window.__fishCapabilityOk;
-        const capHint = document.getElementById('fish-cap-hint');
-        if (capHint) {
-            capHint.textContent = fishCapOk
-                ? '(navegador compatível)'
-                : '(seu navegador não suporta gravação de áudio)';
-            capHint.style.color = fishCapOk ? '#22CC10' : '#FF6B35';
+        // Public link fields
+        if (publicEnabledCheckbox) {
+            publicEnabledCheckbox.checked = !!current.publicEnabled;
+            
+            // Toggle visibility of password and URL based on checkbox
+            if (publicLinkContainer) {
+                publicLinkContainer.classList.toggle('hidden', !publicEnabledCheckbox.checked);
+            }
+            
+            // Build the URL based on current DB user_id
+            if (publicUrlInput && current.user_id) {
+                const url = new URL(window.location.href);
+                url.search = '';
+                url.searchParams.set('shareId', current.user_id);
+                publicUrlInput.value = url.toString();
+            }
         }
-        if (fishSttCheckbox) {
-            fishSttCheckbox.checked = !!current.fishSttEnabled;
-            fishSttCheckbox.disabled = !fishCapOk;
-        }
-        if (fishTtsCheckbox) {
-            fishTtsCheckbox.checked = !!current.fishTtsEnabled;
-            // TTS não precisa de MediaRecorder, só de <audio>
-            fishTtsCheckbox.disabled = false;
+        if (publicPasswordInput) {
+            publicPasswordInput.value = current.publicPassword || '';
         }
         // Enable/disable test button based on webhook
         if (testWebhookBtn) {
@@ -332,6 +367,25 @@ const Config = (() => {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // Extrai os valores do formulário principal
+        const valsToCheck = [
+            robotNameInput.value,
+            professorNameInput.value,
+            paisInput.value,
+            estadoInput.value,
+            cidadeInput.value,
+            nomeEscolaInput.value,
+            salaLocalInput.value,
+            diretorInput ? diretorInput.value : '',
+            recepcionistaInput ? recepcionistaInput.value : '',
+            secretarioInput ? secretarioInput.value : ''
+        ];
+
+        if (checkProfanityInFields(valsToCheck)) {
+            alert('Atenção: Foi detectada uma palavra imprópria para menores em um dos campos. Por favor, corrija o texto antes de salvar.');
+            return;
+        }
+
         const webhook = webhookInput.value.trim();
         if (!webhook) {
             webhookInput.focus();
@@ -372,8 +426,8 @@ const Config = (() => {
         current.hatEnabled = hatEnabledCheckbox ? hatEnabledCheckbox.checked : false;
         current.hatColor = hatColorInput ? hatColorInput.value : '#333333';
         current.hatLogo = hatLogoInput ? hatLogoInput.value : '';
-        current.fishSttEnabled = !!(fishSttCheckbox && fishSttCheckbox.checked);
-        current.fishTtsEnabled = !!(fishTtsCheckbox && fishTtsCheckbox.checked);
+        current.publicEnabled = publicEnabledCheckbox ? publicEnabledCheckbox.checked : false;
+        current.publicPassword = publicPasswordInput ? publicPasswordInput.value.trim() : '';
 
         // Ensure session ID
         if (!current.sessaoId) {
@@ -410,6 +464,54 @@ const Config = (() => {
             return current.sessaoId;
         },
         async init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareId = urlParams.get('shareId');
+
+            if (shareId) {
+                // MODO VISITANTE
+                if (settingsBtn) settingsBtn.style.display = 'none'; // Esconde engrenagem
+                
+                return new Promise((resolve) => {
+                    authOverlay.classList.add('active');
+                    
+                    authForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const pwd = authPasswordInput.value;
+                        
+                        try {
+                            const res = await fetch('/api/public-config', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ shareId, password: pwd })
+                            });
+                            
+                            if (res.ok) {
+                                current = { ...defaults, ...(await res.json()) };
+                                authOverlay.classList.remove('active');
+                                authErrorMsg.style.display = 'none';
+                                
+                                // Não vamos permitir editar config no modo visitante, então não chamamos populateForm.
+                                // Apenas carregamos as vozes para que o TTS funcione.
+                                loadVoices();
+                                resolve();
+                            } else {
+                                authErrorMsg.style.display = 'block';
+                            }
+                        } catch (err) {
+                            console.error('Erro de autenticação', err);
+                            authErrorMsg.style.display = 'block';
+                        }
+                    });
+                });
+            }
+
+            // Update public settings visibility dynamically
+            if (publicEnabledCheckbox && publicLinkContainer) {
+                publicEnabledCheckbox.addEventListener('change', (e) => {
+                    publicLinkContainer.classList.toggle('hidden', !e.target.checked);
+                });
+            }
+
             // Load real config from server
             const serverConfig = await load();
             current = serverConfig;
@@ -633,16 +735,33 @@ const Config = (() => {
             if (topicForm) {
                 topicForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
+                    
                     const topic = topicInput ? topicInput.value.trim().substring(0, 70) : '';
+                    const codigoBNCC = bnccCodigoInput ? bnccCodigoInput.value.trim() : '';
+                    const descricaoBNCC = bnccDescricaoInput ? bnccDescricaoInput.value.trim() : '';
+                    const disciplina = disciplinaInput ? disciplinaInput.value.trim() : '';
+                    const turno = turnoSelect ? turnoSelect.value : '';
+                    const objetivoAula = objetivoAulaInput ? objetivoAulaInput.value.trim() : '';
+                    const proximosEventos = proximosEventosInput ? proximosEventosInput.value.trim() : '';
+                    const eventosHoje = eventosHojeInput ? eventosHojeInput.value.trim() : '';
+                    const avisosGerais = avisosGeraisInput ? avisosGeraisInput.value.trim() : '';
+
+                    const valsToCheck = [topic, codigoBNCC, descricaoBNCC, disciplina, turno, objetivoAula, proximosEventos, eventosHoje, avisosGerais];
+
+                    if (checkProfanityInFields(valsToCheck)) {
+                        alert('Atenção: Foi detectada uma palavra imprópria para menores no assunto/dados. Por favor, corrija o texto antes de salvar.');
+                        return;
+                    }
+
                     current.topicDia = topic;
-                    current.codigoBNCC = bnccCodigoInput ? bnccCodigoInput.value.trim() : '';
-                    current.descricaoBNCC = bnccDescricaoInput ? bnccDescricaoInput.value.trim() : '';
-                    current.disciplina = disciplinaInput ? disciplinaInput.value.trim() : '';
-                    current.turno = turnoSelect ? turnoSelect.value : '';
-                    current.objetivoAula = objetivoAulaInput ? objetivoAulaInput.value.trim() : '';
-                    current.proximosEventos = proximosEventosInput ? proximosEventosInput.value.trim() : '';
-                    current.eventosHoje = eventosHojeInput ? eventosHojeInput.value.trim() : '';
-                    current.avisosGerais = avisosGeraisInput ? avisosGeraisInput.value.trim() : '';
+                    current.codigoBNCC = codigoBNCC;
+                    current.descricaoBNCC = descricaoBNCC;
+                    current.disciplina = disciplina;
+                    current.turno = turno;
+                    current.objetivoAula = objetivoAula;
+                    current.proximosEventos = proximosEventos;
+                    current.eventosHoje = eventosHoje;
+                    current.avisosGerais = avisosGerais;
                     await save(current);
                     if (topicIndicator) {
                         topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
