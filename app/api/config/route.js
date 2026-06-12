@@ -27,7 +27,16 @@ export async function GET(request) {
       return NextResponse.json({});
     }
 
-    return NextResponse.json(result.rows[0]);
+    const row = result.rows[0];
+    // Map DB snake_case to camelCase for frontend
+    const config = {
+      ...row,
+      publicEnabled: row.public_enabled === 1 || row.public_enabled === true,
+      publicPassword: row.public_password || '',
+      publicSlug: row.public_slug || '',
+    };
+
+    return NextResponse.json(config);
   } catch (error) {
     console.error('Get config error:', error);
     return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
@@ -98,6 +107,25 @@ export async function POST(request) {
       return str.substring(0, 1000).replace(/<[^>]*>/g, '');
     };
 
+    let currentSlug = null;
+    try {
+      const existing = await db.execute({
+        sql: 'SELECT public_slug FROM robot_configs WHERE user_id = ?',
+        args: [effectiveUserId]
+      });
+      if (existing.rows.length > 0) {
+        currentSlug = existing.rows[0].public_slug;
+      }
+    } catch (e) {
+      console.warn("Could not fetch existing slug", e);
+    }
+
+    if (!currentSlug && publicEnabled) {
+       const baseSlug = robotName ? robotName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, '-') : 'robo';
+       const dateStr = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12); // format YYYYMMDDHHMM
+       currentSlug = `${baseSlug}-${dateStr}`.replace(/-+$/, '');
+    }
+
     await db.execute({
       sql: `
         INSERT INTO robot_configs (
@@ -107,8 +135,8 @@ export async function POST(request) {
           codigoBNCC, descricaoBNCC, hatEnabled, hatColor, hatLogo,
           nomeDiretor, nomeRecepcionista, nomeSecretario,
           disciplina, objetivoAula, turno, proximosEventos, avisosGerais, eventosHoje,
-          public_enabled, public_password
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          public_enabled, public_password, public_slug
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           webhookUrl = excluded.webhookUrl,
           jwtToken = excluded.jwtToken,
@@ -143,6 +171,7 @@ export async function POST(request) {
           eventosHoje = excluded.eventosHoje,
           public_enabled = excluded.public_enabled,
           public_password = excluded.public_password,
+          public_slug = excluded.public_slug,
           updated_at = CURRENT_TIMESTAMP
       `,
       args: [
@@ -152,7 +181,7 @@ export async function POST(request) {
         sanitize(codigoBNCC), sanitizeLarge(descricaoBNCC), hatEnabled ? 1 : 0, sanitize(hatColor), sanitize(hatLogo),
         sanitize(nomeDiretor), sanitize(nomeRecepcionista), sanitize(nomeSecretario),
         sanitize(disciplina), sanitizeLarge(objetivoAula), sanitize(turno), sanitizeLarge(proximosEventos), sanitizeLarge(avisosGerais), sanitizeLarge(eventosHoje),
-        publicEnabled ? 1 : 0, sanitize(publicPassword)
+        publicEnabled ? 1 : 0, sanitize(publicPassword), currentSlug
       ]
     });
 

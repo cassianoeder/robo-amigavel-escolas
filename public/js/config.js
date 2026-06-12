@@ -37,7 +37,8 @@ const Config = (() => {
         nomeRecepcionista: '',  // Nome do recepcionista (opcional)
         nomeSecretario: '',     // Nome do secretária (opcional)
         publicEnabled: false,   // Link público ativado
-        publicPassword: ''      // Senha do link público
+        publicPassword: '',     // Senha do link público
+        publicSlug: ''           // Slug único para URL pública
     };
 
     const BAD_WORDS = [
@@ -210,12 +211,18 @@ const Config = (() => {
                 publicLinkContainer.classList.toggle('hidden', !publicEnabledCheckbox.checked);
             }
             
-            // Build the URL based on current DB user_id
-            if (publicUrlInput && current.user_id) {
-                const url = new URL(window.location.href);
-                url.search = '';
-                url.searchParams.set('shareId', current.user_id);
-                publicUrlInput.value = url.toString();
+            // Build the URL based on slug (generated after first save with public enabled)
+            if (publicUrlInput) {
+                if (current.publicSlug) {
+                    const url = new URL(window.location.href);
+                    url.search = '';
+                    url.searchParams.set('shareId', current.publicSlug);
+                    publicUrlInput.value = url.toString();
+                } else if (publicEnabledCheckbox.checked) {
+                    publicUrlInput.value = 'Salve as configurações para gerar o link';
+                } else {
+                    publicUrlInput.value = '';
+                }
             }
         }
         if (publicPasswordInput) {
@@ -436,6 +443,12 @@ const Config = (() => {
 
         await save(current);
         document.body.setAttribute('data-theme', current.corDestaque);
+
+        // Reload config from server to get generated slug
+        const refreshed = await load();
+        if (refreshed) {
+            current = { ...current, ...refreshed };
+        }
 
         // CRITICAL FOR MOBILE: Unlock TTS inside user gesture (tap/click)
         // Android Chrome blocks speechSynthesis.speak() unless triggered from user gesture
