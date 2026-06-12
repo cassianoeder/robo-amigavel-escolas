@@ -117,6 +117,7 @@ const Config = (() => {
     const fishSttCheckbox = document.getElementById('cfg-fish-stt-enabled');
     const fishTtsCheckbox = document.getElementById('cfg-fish-tts-enabled');
     const settingsBtn = document.getElementById('btn-settings');
+    const closeConfigBtn = document.getElementById('btn-close-config');
     const kidsBtn = document.getElementById('btn-kids-mode');
     const topicBtn = document.getElementById('btn-daily-topic');
     const topicIndicator = document.getElementById('topic-active-indicator');
@@ -189,6 +190,16 @@ const Config = (() => {
         if (testWebhookBtn) {
             testWebhookBtn.disabled = !webhookInput.value.trim();
         }
+
+        // Show close button if already configured (has webhook)
+        if (closeConfigBtn) {
+            if (current.webhookUrl && current.webhookUrl.trim() !== '') {
+                closeConfigBtn.style.display = 'inline-flex';
+            } else {
+                closeConfigBtn.style.display = 'none';
+            }
+        }
+
         // Update topic indicator visibility based on stored topic
         if (topicIndicator) {
             topicIndicator.classList.toggle('hidden', !current.topicDia || current.topicDia.trim().length === 0);
@@ -303,6 +314,12 @@ const Config = (() => {
 
     // Settings button
     settingsBtn.addEventListener('click', openModal);
+
+    if (closeConfigBtn) {
+        closeConfigBtn.addEventListener('click', () => {
+            closeModal();
+        });
+    }
 
     // Voices loading (async in some browsers)
     speechSynthesis.addEventListener('voiceschanged', loadVoices);
