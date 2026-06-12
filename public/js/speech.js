@@ -22,6 +22,19 @@ const Speech = (() => {
     const synth = window.speechSynthesis;
     let ttsKeepAliveTimer = null;
 
+    // Resgate do AudioContext no Android (Anti-suspend)
+    function _unlockAudioContext() {
+        if (whisperAudioContext && whisperAudioContext.state === 'suspended') {
+            whisperAudioContext.resume().then(() => {
+                console.log('[Whisper] AudioContext destravado via touch!');
+            }).catch(e => console.error(e));
+        }
+    }
+    if (typeof window !== 'undefined') {
+        window.addEventListener('touchstart', _unlockAudioContext, { passive: true });
+        window.addEventListener('click', _unlockAudioContext, { passive: true });
+    }
+
     // Callbacks
     let onTranscript = null;     // (text) => void
     let onSpeechStart = null;    // () => void
@@ -98,44 +111,39 @@ const Speech = (() => {
     }
 
     async function _startWhisperAudio() {
-        if (whisperAudioContext) return; // já ligado
+        if (!whisperAudioContext) return; // Se não foi pré-inicializado no gesture, não podemos seguir
         try {
-            whisperMicStream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    channelCount: 1,
-                    // NÃO forçar sampleRate — deixar o hardware Android escolher
-                }
-            });
+            if (whisperAudioContext.state === 'suspended') {
+                await whisperAudioContext.resume();
+                console.log('[Whisper] AudioContext resumed');
+            }
 
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            whisperAudioContext = new AudioContextClass(); // sample rate NATIVO do dispositivo
-            const nativeSampleRate = whisperAudioContext.sampleRate;
-            console.log(`[Whisper] AudioContext sample rate nativo: ${nativeSampleRate}Hz`);
+            if (!whisperWorkletNode && whisperMicStream) {
+                const nativeSampleRate = whisperAudioContext.sampleRate;
+                console.log(`[Whisper] AudioContext sample rate nativo: ${nativeSampleRate}Hz`);
 
-            // Carrega o AudioWorklet (thread dedicada de áudio)
-            await whisperAudioContext.audioWorklet.addModule('/js/audio-processor.worklet.js');
+                // Carrega o AudioWorklet (thread dedicada de áudio)
+                await whisperAudioContext.audioWorklet.addModule('/js/audio-processor.worklet.js');
 
-            const source = whisperAudioContext.createMediaStreamSource(whisperMicStream);
-            whisperWorkletNode = new AudioWorkletNode(whisperAudioContext, 'audio-processor', {
-                processorOptions: { inputSampleRate: nativeSampleRate }
-            });
+                const source = whisperAudioContext.createMediaStreamSource(whisperMicStream);
+                whisperWorkletNode = new AudioWorkletNode(whisperAudioContext, 'audio-processor', {
+                    processorOptions: { inputSampleRate: nativeSampleRate }
+                });
 
-            // Chunks downsampled chegam do AudioWorklet e vão pro Whisper Worker
-            whisperWorkletNode.port.onmessage = (event) => {
-                if (event.data.type === 'audio_chunk' && isListening && micEnabled) {
-                    if (!synth.speaking) { // Não transcreve enquanto o robô fala
-                        whisperWorker.postMessage(
-                            { type: 'audio_chunk', chunk: event.data.chunk },
-                            [event.data.chunk.buffer]
-                        );
+                // Chunks downsampled chegam do AudioWorklet e vão pro Whisper Worker
+                whisperWorkletNode.port.onmessage = (event) => {
+                    if (event.data.type === 'audio_chunk' && isListening && micEnabled && isWhisperReady) {
+                        if (!synth.speaking) { // Não transcreve enquanto o robô fala
+                            whisperWorker.postMessage(
+                                { type: 'audio_chunk', chunk: event.data.chunk },
+                                [event.data.chunk.buffer]
+                            );
+                        }
                     }
-                }
-            };
+                };
 
-            source.connect(whisperWorkletNode);
-            // NÃO conectar ao destination — só processamento, sem saída de áudio
+                source.connect(whisperWorkletNode);
+            }
 
             isListening = true;
             if (onListeningStart) onListeningStart();
@@ -706,12 +714,30 @@ const Speech = (() => {
 
     async function requestMicPermission() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            // Stop the stream tracks — we only needed permission
-            stream.getTracks().forEach(t => t.stop());
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    channelCount: 1
+                }, 
+                video: false 
+            });
+
+            if (isMobile) {
+                // Mobile: Salva o stream e cria o AudioContext IMEDIATAMENTE durante o User Gesture
+                whisperMicStream = stream;
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!whisperAudioContext) {
+                    whisperAudioContext = new AudioContextClass();
+                    console.log(`[Whisper] AudioContext pré-criado no clique (state: ${whisperAudioContext.state})`);
+                }
+            } else {
+                // Desktop: API nativa gerencia seu próprio getUserMedia interno
+                stream.getTracks().forEach(track => track.stop());
+            }
             return true;
-        } catch (e) {
-            console.error('Permissão de microfone negada:', e);
+        } catch (err) {
+            console.error('Mic permission denied:', err);
             return false;
         }
     }

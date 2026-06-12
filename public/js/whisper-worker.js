@@ -25,6 +25,7 @@ const { pipeline, env } = transformers;
 // Usa o backend WASM (funciona em todos os browsers) com WebGPU como acelerador opcional
 env.allowLocalModels = false; // sempre da HuggingFace Hub (cacheado no IndexedDB)
 env.useBrowserCache = true;   // cache no IndexedDB do browser — download único
+env.backends.onnx.wasm.numThreads = 1; // Previne crash/OOM em mobile reduzindo paralelismo do WASM
 
 let transcriber = null;
 let isReady = false;
