@@ -31,7 +31,7 @@ export default function LoginPage() {
       }
 
       // Redirecionamento padrão para a página do robô
-      router.push('/robot.html');
+      router.push('/robot');
       router.refresh();
     } catch (err) {
       setError(err.message);

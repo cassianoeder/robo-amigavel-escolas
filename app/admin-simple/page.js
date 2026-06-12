@@ -172,7 +172,7 @@ export default function SimpleAdmin() {
           <Link href="/" className="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors mr-4">
             Voltar ao Início
           </Link>
-          <Link href="/robot.html" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-lg transition-colors">
+          <Link href="/robot" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-lg transition-colors">
             🤖 Voltar ao Robô
           </Link>
           {user?.isAdmin && (
