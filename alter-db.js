@@ -20,6 +20,9 @@ async function addColumns() {
     'hatEnabled INTEGER',
     'hatColor TEXT',
     'hatLogo TEXT',
+    'public_enabled INTEGER',
+    'public_password TEXT',
+    'public_slug TEXT',
     'elevenlabs_enabled INTEGER',
     'elevenlabs_agent_id TEXT'
   ];

@@ -53,6 +53,9 @@ async function setupDb() {
         hatEnabled INTEGER,
         hatColor TEXT,
         hatLogo TEXT,
+        public_enabled INTEGER DEFAULT 0,
+        public_password TEXT DEFAULT '',
+        public_slug TEXT DEFAULT '',
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );

@@ -283,6 +283,12 @@ const App = (() => {
         if (cfg.elevenlabsEnabled && cfg.elevenlabsAgentId) {
             console.log('[ElevenLabs] Ativando widget conversational...');
             
+            // Force native speech to stop completely
+            if (typeof Speech !== 'undefined') {
+                Speech.disableMic();
+                Speech.cancelSpeech();
+            }
+
             // Hide native mic
             const bottomControls = document.querySelector('.bottom-controls');
             if (bottomControls) bottomControls.style.display = 'none';
@@ -303,7 +309,10 @@ const App = (() => {
                 document.body.appendChild(widget);
             }
             widget.setAttribute('agent-id', cfg.elevenlabsAgentId);
+            widget.setAttribute('variant', 'compact');
             widget.style.display = 'block';
+            widget.style.setProperty('--elevenlabs-convai-widget-width', '240px');
+            widget.style.setProperty('--elevenlabs-convai-widget-height', '360px');
 
             // Initialize systems needed for face animation
             RobotFace.init();
@@ -337,6 +346,10 @@ const App = (() => {
         // Hide ElevenLabs widget if present
         const widget = document.querySelector('elevenlabs-convai');
         if (widget) widget.style.display = 'none';
+
+        if (typeof Speech !== 'undefined' && !isManuallyMuted) {
+            Speech.enableMic();
+        }
 
         if (!micOk) {
             alert('O robô precisa de permissão de microfone para funcionar!');
